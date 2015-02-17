@@ -1,0 +1,4 @@
+#Build:
+
+arm-linux-gnueabi-gcc hello.c -o hello
+
