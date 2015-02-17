@@ -82,6 +82,12 @@
 		device_type = "memory";
 		reg = < 0x0 0x40000000 >;
 	} ;
+	
+	test_register_0: test_register@75c00000 {
+		compatible = "test_register_1.00.a";
+		reg = < 0x75c0000 0x10000 >;
+	} ;
+	
 	ps7_axi_interconnect_0: amba@0 {
 		#address-cells = <1>;
 		#size-cells = <1>;
