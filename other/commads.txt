@@ -1,0 +1,28 @@
+Building user space hello program:
+
+arm-linux-gnueabi-gcc hello.c -o hello
+
+
+Building kernel:
+
+1. required:
+
+-ncurses:
+sudo apt-get install ncurses-dev
+
+-for uImage:
+sudo apt-get install u-boot-tools
+
+2. execute in kerneldir:
+
+-defconfig:
+make ARCH=arm xilinx_zynq_defconfig
+
+-menuconfig:
+make ARCH=arm menuconfig
+
+-make (cross-compiler is important):
+make -j5 ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- UIMAGE_LOADADDR=0x8000 uImage
+
+
+
