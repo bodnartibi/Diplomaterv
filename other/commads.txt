@@ -13,6 +13,9 @@ sudo apt-get install ncurses-dev
 -for uImage:
 sudo apt-get install u-boot-tools
 
+-Petalinux:
+http://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/petalinux.html
+
 2. execute in kerneldir:
 
 -defconfig:
@@ -22,7 +25,18 @@ make ARCH=arm xilinx_zynq_defconfig
 make ARCH=arm menuconfig
 
 -make (cross-compiler is important):
-make -j5 ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- UIMAGE_LOADADDR=0x8000 uImage
+make -j5 ARCH=arm CROSS_COMPILE=/opt/pkg/petalinux-v2014.4-final/tools/linux-i386/arm-xilinx-linux-gnueabi/bin/arm-xilinx-linux-gnueabi- UIMAGE_LOADADDR=0x8000 uImage
 
+-need add header for u-boot:
+mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n "Linux kernel 3.18" -d noheader.uImage uImage
+
+Building kernel modul:
+
+the right kernel version must be built
+to check kernel verison:
+uname -r
+
+ARCH=arm 
+COMPILER=/opt/pkg/petalinux-v2014.4-final/tools/linux-i386/arm-xilinx-linux-gnueabi/bin/arm-xilinx-linux-gnueabi-
 
 
