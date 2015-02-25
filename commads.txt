@@ -52,3 +52,13 @@ ARCH=arm
 COMPILER=/opt/pkg/petalinux-v2014.4-final/tools/linux-i386/arm-xilinx-linux-gnueabi/bin/arm-xilinx-linux-gnueabi-
 
 
+============================================
+=   Building U-boot                        =
+============================================
+
+make zynq_zed_config
+
+export CROSS_COMPILE=/opt/pkg/petalinux-v2014.4-final/tools/linux-i386/arm-xilinx-linux-gnueabi/bin/arm-xilinx-linux-gnueabi-
+
+make
+
