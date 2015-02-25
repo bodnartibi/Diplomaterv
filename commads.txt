@@ -1,0 +1,54 @@
+============================================
+=   Building user space hello program      =
+============================================
+
+arm-linux-gnueabi-gcc hello.c -o hello
+
+============================================
+=   Building kernel                        =
+============================================
+
+= 1. required:
+
+-ncurses:
+sudo apt-get install ncurses-dev
+
+-for uImage:
+sudo apt-get install u-boot-tools
+
+-cross compiler: Petalinux:
+http://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/petalinux.html
+
+= 2. execute in kerneldir:
+
+-defconfig:
+make ARCH=arm xilinx_zynq_defconfig
+
+-Notes:   /hungarian/ ha nem mukodik ez a konfig, akkor lopjunk konfigot egy mukodo kernelbol
+pl: /proc/config.gz es hasznaljuk ezt
+	  this kernel version works:
+git checkout xilinx-v14.6.02
+
+-menuconfig:
+make ARCH=arm menuconfig
+
+-make (cross-compiler is important):
+make -j5 ARCH=arm CROSS_COMPILE=/opt/pkg/petalinux-v2014.4-final/tools/linux-i386/arm-xilinx-linux-gnueabi/bin/arm-xilinx-linux-gnueabi- UIMAGE_LOADADDR=0x8000 uImage
+
+
+-Notes: if we would like to add u-boot header to the image:
+mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n "Linux kernel 3.18" -d noheader.Image uImage
+
+
+============================================
+=   Building kernel modul                  =
+============================================
+
+the right kernel version must be built
+to check kernel verison:
+uname -r
+
+ARCH=arm 
+COMPILER=/opt/pkg/petalinux-v2014.4-final/tools/linux-i386/arm-xilinx-linux-gnueabi/bin/arm-xilinx-linux-gnueabi-
+
+
