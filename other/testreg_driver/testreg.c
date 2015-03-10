@@ -17,7 +17,6 @@
 #include <linux/fcntl.h> /* O_ACCMODE */
 #include <asm/uaccess.h> /* copy_from/to_user */
 
-
 #define BUFF_SIZE 16
 int reg_open(struct inode *inode, struct file *filp);
 int reg_release(struct inode *inode, struct file *filp);
@@ -32,6 +31,7 @@ int testreg_init(void);
 int testreg_major = 200;
 int reg[1];
 char *input_buffer;
+char module_name[] = "testreg";
 
 struct file_operations testreg_fops = {
   read: reg_read,
@@ -72,13 +72,14 @@ int reg_release(struct inode *inode, struct file *filp)
 
 ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 {
-  /* Transfering data to user space */ 
-  copy_to_user(buf,input_buffer,BUFF_SIZE);
-
+  /* Transfering data to user space */
+  input_buffer[BUFF_SIZE -1] = '\0'; 
+  copy_to_user(buf, input_buffer, BUFF_SIZE);
+  printk("<1> read %s\n", input_buffer);
   /* Changing reading position as best suits */ 
   if (*f_pos == 0) { 
-    *f_pos+=1; 
-    return 1; 
+    *f_pos += BUFF_SIZE; 
+    return BUFF_SIZE; 
   } else { 
     return 0; 
   }
@@ -88,17 +89,28 @@ ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 ssize_t reg_write(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 {
   char *tmp;
+  int c;
+  //tmp = buf + count - 1;
 
-  tmp = buf + count - 1;
-  copy_from_user(input_buffer,tmp,1);
-  return 1;
+  if (count > BUFF_SIZE - 1) {
+    c = BUFF_SIZE - 1;
+  }
+  else {
+    c = count;
+  }
+  
+  copy_from_user(input_buffer, buf, c);
+  //f_pos += c;
+  printk("write %s\n", input_buffer);
+  return c;
+
 }
 
 
 void testreg_exit(void)
 {
   /* Freeing the major number */
-  unregister_chrdev(testreg_major, "testreg");
+  unregister_chrdev(testreg_major, module_name);
 
   /* Freeing buffer memory */
   if (input_buffer) {
@@ -111,9 +123,19 @@ void testreg_exit(void)
 int testreg_init(void)
 {
   int result;
+  int mode = 0644;
+  // need a char device
+  mode |= S_IFCHR;
+
+
+//  testreg_major = register_chrdev_region(60, 1, module_name);
+//  if(testreg_major < 0) {
+//    return -1;
+//  }
+//  printk("<1> registered chrdev");
 
   /* Registering device */
-  result = register_chrdev(testreg_major, "testreg", &testreg_fops);
+  result = register_chrdev(testreg_major, module_name, &testreg_fops);
   if (result < 0) {
     printk("<1>testreg: cannot obtain major number %d result: %d\n", testreg_major,result);
     return result;
