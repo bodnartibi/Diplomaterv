@@ -36,24 +36,6 @@ struct file_operations testreg_fops = {
   release: reg_release
 };
 
-
-/*
-static struct of_device_id testreg_of_match[] __devinitdata = {
-  { .compatible = "test_register_1.00.a", },
-  {}
-};
-
-static struct platform_driver testreg_platform_driver = {
-    .probe = testreg_drv_probe,
-    .remove = testreg_drv_remove,
-    .driver = {
-    .name = "testreg",
-    .owner = THIS_MODULE,
-    .of_match_table = testreg_of_match,
-    },
-};
-*/
-
 int reg_open(struct inode *inode, struct file *filp)
 {
   return 0;
@@ -68,15 +50,18 @@ int reg_release(struct inode *inode, struct file *filp)
 
 ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 {
-  /* Transfering data to user space */ 
-  copy_to_user(buf,input_buffer,BUFF_SIZE);
 
-  /* Changing reading position as best suits */ 
-  if (*f_pos == 0) { 
-    *f_pos+=1; 
-    return 1; 
-  } else { 
-    return 0; 
+  /* Transfering data to user space */
+  input_buffer[BUFF_SIZE -1] = '\0';
+  copy_to_user(buf, input_buffer, BUFF_SIZE);
+  printk("<1> read %s\n", input_buffer);
+  
+  /* Changing reading position as best suits */
+  if (*f_pos == 0) {
+    *f_pos += BUFF_SIZE;
+    return BUFF_SIZE;
+  } else {
+    return 0;
   }
 }
 
@@ -84,12 +69,21 @@ ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 ssize_t reg_write(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 {
   char *tmp;
+  int c;
+  //tmp = buf + count - 1;
 
-  tmp = buf + count - 1;
-  copy_from_user(input_buffer,tmp,1);
-  return 1;
+  if (count > BUFF_SIZE - 1) {
+    c = BUFF_SIZE - 1;
+  }
+  else {
+    c = count;
+  }
+
+  copy_from_user(input_buffer, buf, c);
+  //f_pos += c;
+  printk("write %s\n", input_buffer);
+  return c;
 }
-
 
 static int myregister_remove(struct platform_device *pdev)
 {
@@ -108,8 +102,15 @@ static int myregister_remove(struct platform_device *pdev)
 static int myregister_probe(struct platform_device *pdev)
 {
   int result;
-
+  const struct of_device_id *match;
+  
   printk("<1>Probe start\n");
+
+//  match = of_match_device(myregister_match, &op->dev);
+
+//  if (!match)
+//    return -EINVAL;
+
   /* Registering device */
   result = register_chrdev(testreg_major, "myreg", &testreg_fops);
   if (result < 0) {
@@ -145,7 +146,7 @@ static struct platform_driver myregister_driver = {
         .remove = myregister_remove,
         .driver = {
                 .name           = "myregister",
-		.owner		+ THIS_MODULE,
+		.owner		= THIS_MODULE,
                 .of_match_table = myregister_match
         },
 };
