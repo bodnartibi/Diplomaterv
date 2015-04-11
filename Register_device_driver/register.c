@@ -95,7 +95,6 @@ static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_
 
 static int myregister_remove(struct platform_device *pdev)
 {
-	//TODO TODO ide az i/o dolgokat is!
   /* Freeing the major number */
   unregister_chrdev(testreg_major, "myreg");
 
@@ -103,6 +102,9 @@ static int myregister_remove(struct platform_device *pdev)
   if (input_buffer) {
     kfree(input_buffer);
   }
+
+	iounmap(regs);
+	release_mem_region(MYREG_START, MYREG_LEN);
   printk(KERN_ALERT "Removing myreg modul\n");
 
   return 0;
@@ -123,14 +125,14 @@ static int myregister_probe(struct platform_device *pdev)
   result = register_chrdev(testreg_major, "myreg", &testreg_fops);
   if (result < 0) {
     printk("<1>testreg: cannot obtain major number %d result: %d\n", testreg_major,result);
-    return result;
+    goto fail_reg;
   }
 
   /* Allocating memory for the buffer */
   input_buffer = kmalloc(BUFF_SIZE, GFP_KERNEL); 
   if (!input_buffer) { 
     result = -ENOMEM;
-    goto fail_req; 
+    goto fail_mem; 
   } 
   memset(input_buffer, 0, BUFF_SIZE);
 
@@ -160,8 +162,10 @@ static int myregister_probe(struct platform_device *pdev)
 	fail_map:
 	release_mem_region(MYREG_START, MYREG_LEN);
   fail_req: 
-	  //TODO ez még így full rossz
-  myregister_remove(pdev); 
+	kfree(input_buffer);
+	fail_mem:
+	unregister_chrdev(testreg_major, "myreg");
+	fail_reg:
   return result;	
   
 }
