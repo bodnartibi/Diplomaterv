@@ -15,6 +15,7 @@
 #include <asm/uaccess.h> /* copy_from/to_user */
 #include <linux/platform_device.h>
 #include <asm/io.h>
+#include <linux/io.h>
 
 #define BUFF_SIZE 16
 //TODO ne beégetett címekkel
@@ -32,6 +33,8 @@ int testreg_major = 200;
 int reg[1];
 char *input_buffer;
 void *regs;
+resource_size_t mem_start = MYREG_START;
+resource_size_t mem_len = MYREG_LEN;
 
 struct file_operations testreg_fops = {
   read: reg_read,
@@ -55,26 +58,32 @@ int reg_release(struct inode *inode, struct file *filp)
 static ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 {
 
+	unsigned int reg_value;
   /* Transfering data to user space */
   input_buffer[BUFF_SIZE -1] = '\0';
-  copy_to_user(buf, input_buffer, BUFF_SIZE);
-  printk("<1> read %s\n", input_buffer);
+  //copy_to_user(buf, input_buffer, BUFF_SIZE);
+  //printk("<1> read %s\n", input_buffer);
 
 	//TODO ioread 
+	reg_value = ioread8(regs);
  
+	printk("<1> read %u\n", reg_value);
+
   /* Changing reading position as best suits */
-  if (*f_pos == 0) {
-    *f_pos += BUFF_SIZE;
-    return BUFF_SIZE;
-  } else {
-    return 0;
-  }
+  //if (*f_pos == 0) {
+  //  *f_pos += BUFF_SIZE;
+  //  return BUFF_SIZE;
+  //} else {
+  //  return 0;
+  //}
+	return sizeof(reg_value);
 }
 
 
 static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos)
 {
   int c;
+	u8 value;
   //tmp = buf + count - 1;
 
   if (count > BUFF_SIZE - 1) {
@@ -84,12 +93,15 @@ static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_
     c = count;
   }
 
-  copy_from_user(input_buffer, buf, c);
+	copy_from_user(input_buffer, buf, c);
   //f_pos += c;
-  printk("write %s\n", input_buffer);
+  //printk("write %s\n", input_buffer);
 
 	//TODO iowrite
-
+	value = (u8)buf[0];
+	printk("<1> write: try to write %c\n", value);
+	iowrite8(value, regs);
+	
   return c;
 }
 
@@ -137,13 +149,13 @@ static int myregister_probe(struct platform_device *pdev)
   memset(input_buffer, 0, BUFF_SIZE);
 
 	//TODO ne beégetett címmel/hosszal
-	if(!(check_mem_region(MYREG_START, MYREG_LEN))) {
+	if(!(check_mem_region(mem_start, mem_len))) {
 		printk("<1>ERROR check mem region\n");
 		goto fail_req;
 	}
 
   //TODO ne beégetett címmel/hosszal
-  if (NULL == request_mem_region(MYREG_START, MYREG_LEN, "myreg_mem")) {
+  if (NULL == request_mem_region(mem_start, mem_len, "myreg_mem")) {
   printk("<1>ERROR request mem region\n");
   //TODO hibakezelés mert ez nem elég itt
   // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
@@ -180,8 +192,8 @@ static struct platform_driver myregister_driver = {
         .probe = myregister_probe,
         .remove = myregister_remove,
         .driver = {
-                .name           = "myregister",
-		.owner		= THIS_MODULE,
+                .name = "myregister",
+                .owner = THIS_MODULE,
                 .of_match_table = myregister_match
         },
 };
