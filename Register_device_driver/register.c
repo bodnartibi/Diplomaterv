@@ -19,7 +19,7 @@
 
 #define BUFF_SIZE 16
 //TODO ne beégetett címekkel
-#define MYREG_START 0x75c0000
+#define MYREG_START 0x75c00000
 #define MYREG_LEN 0x10000
 
 int reg_open(struct inode *inode, struct file *filp);
@@ -151,12 +151,14 @@ static int myregister_probe(struct platform_device *pdev)
 	//TODO ne beégetett címmel/hosszal
 	if(!(check_mem_region(mem_start, mem_len))) {
 		printk("<1>ERROR check mem region\n");
+		printk("<1>ERROR mem_start %x mem_len %x\n", mem_start, mem_len);
 		goto fail_req;
 	}
 
   //TODO ne beégetett címmel/hosszal
   if (NULL == request_mem_region(mem_start, mem_len, "myreg_mem")) {
   printk("<1>ERROR request mem region\n");
+	printk("<1>ERROR mem_start %x mem_len %x\n", mem_start, mem_len);
   //TODO hibakezelés mert ez nem elég itt
   // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
     goto fail_req;

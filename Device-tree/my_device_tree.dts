@@ -90,7 +90,7 @@
 		ranges ;
 		test_register_0: test_register@75c00000 {
 		compatible = "test_register_1.00.a";
-		reg = < 0x75c0000 0x10000 >;
+		reg = < 0x75c00000 0x10000 >;
 		} ;
 		ps7_afi_0: ps7-afi@f8008000 {
 			compatible = "xlnx,ps7-afi-1.00.a";
