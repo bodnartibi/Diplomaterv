@@ -149,7 +149,7 @@ int testreg_init(void)
   } 
   memset(input_buffer, 0, BUFF_SIZE);
 
-  printk("<1>Inserting testreg module\n"); 
+  printk(KERN_INFO "Inserting testreg module\n"); 
   return 0;
 
   fail: 

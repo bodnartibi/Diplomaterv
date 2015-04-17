@@ -67,16 +67,17 @@ static ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_po
 	//TODO ioread 
 	reg_value = ioread8(regs);
  
-	printk("<1> read %u\n", reg_value);
+	printk(KERN_INFO "read %u\n", reg_value);
 
+	copy_to_user(buf, &reg_value, sizeof(reg_value));
   /* Changing reading position as best suits */
-  //if (*f_pos == 0) {
-  //  *f_pos += BUFF_SIZE;
-  //  return BUFF_SIZE;
-  //} else {
-  //  return 0;
-  //}
-	return sizeof(reg_value);
+	if (*f_pos == 0) {
+    *f_pos += sizeof(reg_value);
+    return sizeof(reg_value);
+  } else {
+    return 0;
+  }
+	//return sizeof(reg_value);
 }
 
 
@@ -99,7 +100,7 @@ static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_
 
 	//TODO iowrite
 	value = (u8)buf[0];
-	printk("<1> write: try to write %c\n", value);
+	printk(KERN_INFO "write: try to write %c\n", value);
 	iowrite8(value, regs);
 	
   return c;
@@ -117,7 +118,7 @@ static int myregister_remove(struct platform_device *pdev)
 
 	iounmap(regs);
 	release_mem_region(MYREG_START, MYREG_LEN);
-  printk(KERN_ALERT "Removing myreg modul\n");
+  printk(KERN_INFO "Removing myreg modul\n");
 
   return 0;
 }
@@ -126,7 +127,7 @@ static int myregister_probe(struct platform_device *pdev)
 {
   int result;
   
-  printk("<1>Probe start\n");
+  printk(KERN_INFO "Probe start\n");
 
 //  match = of_match_device(myregister_match, &op->dev);
 
@@ -136,7 +137,7 @@ static int myregister_probe(struct platform_device *pdev)
   /* Registering device */
   result = register_chrdev(testreg_major, "myreg", &testreg_fops);
   if (result < 0) {
-    printk("<1>testreg: cannot obtain major number %d result: %d\n", testreg_major,result);
+    printk(KERN_ERR "cannot obtain major number %d result: %d\n", testreg_major,result);
     goto fail_reg;
   }
 
@@ -149,16 +150,16 @@ static int myregister_probe(struct platform_device *pdev)
   memset(input_buffer, 0, BUFF_SIZE);
 
 	//TODO ne beégetett címmel/hosszal
-	if(!(check_mem_region(mem_start, mem_len))) {
-		printk("<1>ERROR check mem region\n");
-		printk("<1>ERROR mem_start %x mem_len %x\n", mem_start, mem_len);
-		goto fail_req;
-	}
+//	if(!(check_mem_region(mem_start, mem_len))) {
+//		printk("<1>ERROR check mem region\n");
+//		printk("<1>ERROR mem_start %x mem_len %x\n", mem_start, mem_len);
+//		goto fail_req;
+//	}
 
   //TODO ne beégetett címmel/hosszal
   if (NULL == request_mem_region(mem_start, mem_len, "myreg_mem")) {
-  printk("<1>ERROR request mem region\n");
-	printk("<1>ERROR mem_start %x mem_len %x\n", mem_start, mem_len);
+  printk(KERN_ERR "request mem region\n");
+	printk(KERN_ERR "mem_start %x mem_len %x\n", mem_start, mem_len);
   //TODO hibakezelés mert ez nem elég itt
   // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
     goto fail_req;
@@ -166,11 +167,11 @@ static int myregister_probe(struct platform_device *pdev)
 
   regs = ioremap(MYREG_START, MYREG_LEN);
   if(!regs) {
-     printk("<1>ERROR ioremap\n");
+     printk(KERN_ERR "ERROR ioremap\n");
   //TODO rendes hibakezelés
     goto fail_map;
   }
-  printk("<1>Inserting myreg module\n"); 
+  printk(KERN_INFO "Inserting myreg module\n"); 
   return 0;
 
 	fail_map:
