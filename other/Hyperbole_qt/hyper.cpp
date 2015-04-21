@@ -1,6 +1,9 @@
 #include <hyper.h>
 #include <math.h>
 
+
+
+
 void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, int time_2, double* res_x, double* res_y, int res_length)
 {
     // hangsebesseg
@@ -47,39 +50,38 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, 
     int index = 0;
     int x;
     int y;
-    int a;
-    for(a = (distance - sound_distance)/2; 500000 > a; a++ ){
-        /**
-        * a kozelebbi szenzotrol "a" a tavolsag
-        * a tavolabbitol a + dd
-        */
+    double a;
+    //TODO meddigmenjen a ciklus
+    for(a = (distance - sound_distance)/2; 500000 > a; a +=0.1 ){
+
+        // a kozelebbi szenzotrol "a" a tavolsag
+        // a tavolabbitol a + dd
         double b = a + sound_distance;
-        /**
-        * coszinusztetellel a kozelebbinel levo szog
-        */
+
+        // coszinusztetellel a kozelebbinel levo szog
         double coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));
-        /**
-        * kozepponttol a tavolsag
-        */
+
+        // kozepponttol a tavolsag
          double s = sqrt(pow(a,2.0) + pow(distance,2.0)/4 - a*distance*coslamd);
-         /**
-          * kozepponttol a szog
-          */
-           double cosfi = 1/(s*distance)*(pow(s,2.0) + pow(distance,2.0)/4 - pow(a,2));
-           double fi = acos(cosfi);
-          /**
-            * a pont koordinatai
-            */
-           x = s * cosfi;
-           y = s * sin(fi);
 
-            *(res_x + index) = x;
-            *(res_y + index) = y;
+        // kozepponttol a szog
+        double cosfi = 1/(s*distance)*(pow(s,2.0) + pow(distance,2.0)/4 - pow(a,2));
+        double fi = acos(cosfi);
 
+        // a pont koordinatai
 
-            index++;
-            if(index >= res_length)
-                break;
+        x = s * cosfi;
+        y = s * sin(fi);
+
+        *(res_x + index) = x;
+        *(res_y + index) = y;
+        index++;
+        *(res_x + index) = x;
+        *(res_y + index) = -y;
+        index++;
+
+        if(index >= res_length)
+            break;
         }
 
     // hiperbola eltolasa es forgatasa

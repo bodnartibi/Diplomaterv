@@ -15,6 +15,9 @@ int main(int argc, char*argv[]){
 	int res;
     int index;
 
+    QPoint ez[10000];
+
+    QList<QPoint> pp;
 	QApplication app(argc, argv);
 
     QWidget *window = new QWidget();
@@ -33,16 +36,25 @@ int main(int argc, char*argv[]){
     res_y = (double*)malloc(sizeof(double)*size);
 
     test();
-    calc_hyper(0,0,150,0,20,1,res_x,res_y, size);
+
+    QPoint* one = new QPoint(100,100);
+    QPoint* two = new QPoint(100,300);
+
+    drawW->points.append(*one);
+    drawW->points.append(*two);
+    calc_hyper(one->x(),one->y(),two->x(),two->y(),30,1,res_x,res_y, size);
 
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint(*(res_x+i)+100,*(res_x+i)+100);
+        QPoint* p = new QPoint((int)*(res_x+i)+200,(int)*(res_y+i)+200);
+        //ez[i] = *p;
         drawW->points.append(*p);
     }
+
     //drawW.show();
 
+
     layout->addWidget(drawW);
-    window->resize(200,200);
+    window->resize(500,500);
     window->show();
 
 	return app.exec();
