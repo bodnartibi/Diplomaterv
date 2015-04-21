@@ -47,12 +47,14 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, 
     }
 
     // hiperbola kiszamitasa
-    int index = 0;
+    //int index = 0;
     int x;
     int y;
     double a;
     //TODO meddigmenjen a ciklus
-    for(a = (distance - sound_distance)/2; 500000 > a; a +=0.1 ){
+
+    a = (distance - sound_distance)/2;
+    for(int index = 0; index < res_length; ){
 
         // a kozelebbi szenzotrol "a" a tavolsag
         // a tavolabbitol a + dd
@@ -73,19 +75,40 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, 
         x = s * cosfi;
         y = s * sin(fi);
 
-        *(res_x + index) = x;
-        *(res_y + index) = y;
-        index++;
-        *(res_x + index) = x;
-        *(res_y + index) = -y;
+        // pont forgatasa
+
+        double rot_x_1 = x * cos(angle) - y * sin(angle);
+        double rot_y_1 = x * sin(angle) + y * cos(angle);
+
+        // hiperbola masik fele ugyanaz csak y koordinata az inverze
+        double rot_x_2 = x * cos(angle) + y * sin(angle);
+        double rot_y_2 = x * sin(angle) - y * cos(angle);
+
+
+        // pontok eltolasa
+
+        double fin_x_1 = rot_x_1 + middle_x;
+        double fin_y_1 = rot_y_1 + middle_y;
+
+        double fin_x_2 = rot_x_2 + middle_x;
+        double fin_y_2 = rot_y_2 + middle_y;
+
+        *(res_x + index) = fin_x_1;
+        *(res_y + index) = fin_y_1;
         index++;
 
+        // biztonsag kedveert
         if(index >= res_length)
             break;
+
+        *(res_x + index) = fin_x_2;
+        *(res_y + index) = fin_y_2;
+        index++;
+
+        // lepeskoz
+        a +=0.1;
+
         }
-
-    // hiperbola eltolasa es forgatasa
-
 
 }
 

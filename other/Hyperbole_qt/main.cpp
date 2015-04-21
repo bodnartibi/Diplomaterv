@@ -42,10 +42,10 @@ int main(int argc, char*argv[]){
 
     drawW->points.append(*one);
     drawW->points.append(*two);
-    calc_hyper(one->x(),one->y(),two->x(),two->y(),30,1,res_x,res_y, size);
+    calc_hyper(one->x(),one->y(),two->x(),two->y(),1,1,res_x,res_y, size);
 
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint((int)*(res_x+i)+200,(int)*(res_y+i)+200);
+        QPoint* p = new QPoint((int)*(res_x+i),(int)*(res_y+i));
         //ez[i] = *p;
         drawW->points.append(*p);
     }
