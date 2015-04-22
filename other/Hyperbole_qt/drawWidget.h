@@ -6,6 +6,7 @@
 #include <QList>
 #include <QPoint>
 
+#include <hyper.h>
 
 class DrawWidget : public QWidget
 {
