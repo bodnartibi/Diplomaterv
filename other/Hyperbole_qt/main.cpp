@@ -32,7 +32,9 @@ int main(int argc, char*argv[]){
     //QLineEdit *test_line = new QLineEdit();
     //layout_H->addWidget(test_line);
 
-    InputsWidget* input = new InputsWidget();
+    DrawWidget* drawW = new DrawWidget();
+
+    InputsWidget* input = new InputsWidget(drawW);
     layout_H->addWidget(input);
     input->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     input->show();
@@ -43,7 +45,7 @@ int main(int argc, char*argv[]){
 
     //qDebug() << res;
 
-    DrawWidget* drawW = new DrawWidget();
+
 
     int size = 10000;
     double* res_x;

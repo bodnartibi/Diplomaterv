@@ -1,7 +1,8 @@
 #include <inputsWidget.h>
 
-InputsWidget::InputsWidget(QWidget *parent): QWidget(parent)
+InputsWidget::InputsWidget(QWidget *drawW): QWidget(drawW)
 {
+    this->parent = parent;
     grid_layout = new QGridLayout();
     this->setLayout(grid_layout);
 
@@ -43,14 +44,63 @@ InputsWidget::InputsWidget(QWidget *parent): QWidget(parent)
     error_label = new QLabel();
     grid_layout->addWidget(error_label,4,0);
 
+    calc_button = new QPushButton("Calculate");
+    grid_layout->addWidget(calc_button,0,4);
+    connect(calc_button,SIGNAL(clicked()), this, SLOT(start_calc()));
+    connect(this,SIGNAL(send_start_draw(QList<int>, QList<int>, QList<int>)), \
+            drawW, SLOT(start_draw(QList<int>, QList<int>, QList<int>)));
 }
 
 void InputsWidget::start_calc()
 {
+    bool OK;
+    QList<int> x;
+    QList<int> y;
+    QList<int> t;
+
+    x.append(first_x_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    x.append(second_x_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    x.append(third_x_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    y.append(first_y_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    y.append(second_y_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    y.append(third_y_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    t.append(first_t_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    t.append(second_t_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+    t.append(third_t_line->text().toInt(&OK));
+    if(!OK)
+        goto error;
+
+    print_error("");
+    emit send_start_draw(x,y,t);
+    return;
+
+    error:
+    x.clear();
+    y.clear();
+    t.clear();
+    print_error("ERROR: Invalid input(s)");
     return;
 }
 
 void InputsWidget::print_error(QString text)
 {
+    error_label->setText(text);
     return;
 }
+

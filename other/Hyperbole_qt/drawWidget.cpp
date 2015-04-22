@@ -15,13 +15,8 @@ void DrawWidget::paintEvent(QPaintEvent *event)
 
 }
 
-void DrawWidget::drawPoint(int x, int y)
+void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t)
 {
-    /*
-    QPainter painter(this);
-    QPen myPen(Qt::black, 12, Qt::SolidLine);
-    painter.setPen(myPen);
-    painter.drawPoint(x,y);
-    update();
-    */
+
+    return;
 }

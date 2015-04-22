@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QtGui>
 #include <QLineEdit>
+#include <drawWidget.h>
 
 class InputsWidget : public QWidget
 {
@@ -18,13 +19,14 @@ protected:
 
 signals:
 
-public slots:
+    void send_start_draw(QList<int> x, QList<int> y, QList<int> t);
 
+public slots:
     void start_calc();
 
 private:
     QGridLayout* grid_layout;
-    QPushButton* clac_button;
+    QPushButton* calc_button;
 
     QLineEdit* first_x_line;
     QLineEdit* first_y_line;
@@ -40,6 +42,7 @@ private:
 
     QLabel * error_label;
 
+    QWidget * parent;
     void print_error(QString text);
 
 };

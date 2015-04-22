@@ -12,7 +12,6 @@ class DrawWidget : public QWidget
     Q_OBJECT
 
 public:
-    void drawPoint(int x, int y);
     QList<QPoint> points;
 
 protected:
@@ -20,7 +19,8 @@ protected:
 signals:
 
 public slots:
-
+    void start_draw(QList<int> x, QList<int> y, QList<int> t);
+    //void start_draw();
 };
 
 #endif // DRAWWIDGET_H
