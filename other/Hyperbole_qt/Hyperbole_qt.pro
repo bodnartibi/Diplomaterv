@@ -9,9 +9,11 @@ INCLUDEPATH += .
 # Input
 SOURCES += main.cpp \
     drawWidget.cpp \
-    hyper.cpp
+    hyper.cpp \
+    inputsWidget.cpp
 SOURCES +=
 HEADERS += \
     drawWidget.h \
-    hyper.h
+    hyper.h \
+    inputsWidget.h
 QT += widgets

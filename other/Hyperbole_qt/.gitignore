@@ -2,3 +2,4 @@ Hyperbole_qt
 Hyperbole_qt.pro.user
 Makefile
 moc_drawWidget.cpp
+debug_build

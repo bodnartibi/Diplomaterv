@@ -4,7 +4,11 @@
 
 
 
-void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, int time_2, double* res_x, double* res_y, int res_length)
+void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
+                int time_1, int time_2, \
+                double* res_x, double* res_y, int res_length,\
+                double step, double gain
+                )
 {
     // hangsebesseg
     const double speed = SOUND_SPEED;
@@ -15,11 +19,38 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, 
     // forgatas szoge
     double angle;
 
-    // temporalis
+    // forgatasi szoghoz
     double vec_x, vec_y;
 
     // amekkora utat a hang megtett ennyi ido alatt
     double sound_distance;
+
+    // nyers hiperbolak szamitasahoz
+    double x;
+    double y;
+    double a;
+    double b;
+    double coslamd;
+    double s;
+    double cosfi;
+    double fi;
+
+    // forgatashoz es eltolashoz
+    // pont forgatasa
+    double rot_x_1;
+    double rot_y_1;
+
+    // hiperbola masik fele ugyanaz csak y koordinata az inverze
+    double rot_x_2;
+    double rot_y_2;
+    // pontok eltolasa
+    double fin_x_1;
+    double fin_y_1;
+    double fin_x_2;
+    double fin_y_2;
+
+    // ciklus index
+    int index;
 
     sound_distance = (time_1 - time_2)*speed;
 
@@ -47,51 +78,67 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, 
     }
 
     // hiperbola kiszamitasa
-    //int index = 0;
-    int x;
-    int y;
-    double a;
+
     //TODO meddigmenjen a ciklus
 
     a = (distance - sound_distance)/2;
-    for(int index = 0; index < res_length; ){
+    for(index = 0; index < res_length; ){
 
         // a kozelebbi szenzotrol "a" a tavolsag
         // a tavolabbitol a + dd
-        double b = a + sound_distance;
+        b = a + sound_distance;
 
         // coszinusztetellel a kozelebbinel levo szog
-        double coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));
+        coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));
 
         // kozepponttol a tavolsag
-         double s = sqrt(pow(a,2.0) + pow(distance,2.0)/4 - a*distance*coslamd);
+        s = sqrt(pow(a,2.0) + pow(distance,2.0)/4 - a*distance*coslamd);
 
         // kozepponttol a szog
-        double cosfi = 1/(s*distance)*(pow(s,2.0) + pow(distance,2.0)/4 - pow(a,2));
-        double fi = acos(cosfi);
+        cosfi = 1/(s*distance)*(pow(s,2.0) + pow(distance,2.0)/4 - pow(a,2));
+        fi = acos(cosfi);
 
         // a pont koordinatai
 
+        // ha cosfi not a number
+        if(cosfi != cosfi)
+        {
+            x = middle_x + s;
+            y = middle_y + s;
+            *(res_x + index) = x;
+            *(res_y + index) = y;
+            index++;
+
+            // biztonsag kedveert
+            if(index >= res_length)
+                break;
+
+            *(res_x + index) = x;
+            *(res_y + index) = -y;
+            index++;
+
+            a +=0.1;
+            continue;
+        }
         x = s * cosfi;
         y = s * sin(fi);
-
         // pont forgatasa
 
-        double rot_x_1 = x * cos(angle) - y * sin(angle);
-        double rot_y_1 = x * sin(angle) + y * cos(angle);
+        rot_x_1 = x * cos(angle) - y * sin(angle);
+        rot_y_1 = x * sin(angle) + y * cos(angle);
 
         // hiperbola masik fele ugyanaz csak y koordinata az inverze
-        double rot_x_2 = x * cos(angle) + y * sin(angle);
-        double rot_y_2 = x * sin(angle) - y * cos(angle);
+        rot_x_2 = x * cos(angle) + y * sin(angle);
+        rot_y_2 = x * sin(angle) - y * cos(angle);
 
 
         // pontok eltolasa
 
-        double fin_x_1 = rot_x_1 + middle_x;
-        double fin_y_1 = rot_y_1 + middle_y;
+        fin_x_1 = rot_x_1 + middle_x;
+        fin_y_1 = rot_y_1 + middle_y;
 
-        double fin_x_2 = rot_x_2 + middle_x;
-        double fin_y_2 = rot_y_2 + middle_y;
+        fin_x_2 = rot_x_2 + middle_x;
+        fin_y_2 = rot_y_2 + middle_y;
 
         *(res_x + index) = fin_x_1;
         *(res_y + index) = fin_y_1;
@@ -106,7 +153,8 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, int time_1, 
         index++;
 
         // lepeskoz
-        a +=0.1;
+        a += step;
+        step = step * gain;
 
         }
 

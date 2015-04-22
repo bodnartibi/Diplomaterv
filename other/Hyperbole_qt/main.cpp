@@ -3,12 +3,14 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QTextEdit>
-#include <QApplication>
 #include <QPushButton>
 #include <QDebug>
+#include <QtGui>
+#include <QLineEdit>
 
 #include <drawWidget.h>
 #include <hyper.h>
+#include <inputsWidget.h>
 
 int main(int argc, char*argv[]){
 
@@ -23,8 +25,22 @@ int main(int argc, char*argv[]){
     QWidget *window = new QWidget();
     window->setWindowTitle("Hyperboles");
 
-    QVBoxLayout *layout = new QVBoxLayout();
-    window->setLayout(layout);
+
+    QHBoxLayout *layout_H = new QHBoxLayout();
+    //QPushButton *calc_button = new QPushButton();
+    //layout_H->addWidget(calc_button);
+    //QLineEdit *test_line = new QLineEdit();
+    //layout_H->addWidget(test_line);
+
+    InputsWidget* input = new InputsWidget();
+    layout_H->addWidget(input);
+    input->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    input->show();
+
+    QVBoxLayout *layout_V = new QVBoxLayout();
+    layout_V->addLayout(layout_H);
+    window->setLayout((layout_V));
+
     //qDebug() << res;
 
     DrawWidget* drawW = new DrawWidget();
@@ -42,7 +58,7 @@ int main(int argc, char*argv[]){
 
     drawW->points.append(*one);
     drawW->points.append(*two);
-    calc_hyper(one->x(),one->y(),two->x(),two->y(),1,1,res_x,res_y, size);
+    calc_hyper(one->x(),one->y(),two->x(),two->y(),20,1,res_x,res_y, size, 0.0001,1.005);
 
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)*(res_x+i),(int)*(res_y+i));
@@ -53,7 +69,7 @@ int main(int argc, char*argv[]){
     //drawW.show();
 
 
-    layout->addWidget(drawW);
+    layout_V->addWidget(drawW);
     window->resize(500,500);
     window->show();
 
