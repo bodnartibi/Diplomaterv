@@ -52,12 +52,14 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
     // ciklus index
     int index;
 
-    sound_distance = (time_1 - time_2)*speed;
-
+    //if(time_1 >= time_2)
+        sound_distance = (time_1 - time_2)*speed;
+    //else
+    //    sound_distance = (time_2 - time_1)*speed;
     //TODO függnek a dolgok az idokvantumtol (ms, ns)
 
     // a ket szenzor tavolsagat
-    distance = sqrt(pow(pos_1_x-pos_2_x,2.0)+pow(pos_1_y-pos_2_y,2.0));
+    distance = sqrt(pow(pos_1_x - pos_2_x, 2.0) + pow(pos_1_y - pos_2_y, 2.0));
 
     // a szenzopar felezopontja (az eltolashoz kell)
     middle_x = (pos_1_x + pos_2_x)/2;
@@ -66,7 +68,7 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
     // hiperbola forgatasa szogenek kiszamitasa
 
     vec_x = pos_1_x - pos_2_x;
-    vec_y = pos_1_y + pos_2_y;
+    vec_y = pos_1_y - pos_2_y;
 
     if((pos_1_x - pos_2_x) == 0)
     {
@@ -81,12 +83,12 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
 
     //TODO meddigmenjen a ciklus
 
-    a = (distance - sound_distance)/2;
+    a = (distance + sound_distance)/2;
     for(index = 0; index < res_length; ){
 
         // a kozelebbi szenzotrol "a" a tavolsag
         // a tavolabbitol a + dd
-        b = a + sound_distance;
+        b = a - sound_distance;
 
         // coszinusztetellel a kozelebbinel levo szog
         coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));

@@ -17,6 +17,8 @@ int main(int argc, char*argv[]){
 	int res;
     int index;
 
+    QPoint* size = new QPoint(700,300);
+
     QPoint ez[10000];
 
     QList<QPoint> pp;
@@ -34,6 +36,8 @@ int main(int argc, char*argv[]){
 
     DrawWidget* drawW = new DrawWidget();
 
+    drawW->set_size(*size);
+
     InputsWidget* input = new InputsWidget(drawW);
     layout_H->addWidget(input);
     input->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
@@ -46,7 +50,7 @@ int main(int argc, char*argv[]){
     //qDebug() << res;
 
 
-
+/*
     int size = 10000;
     double* res_x;
     res_x = (double*)malloc(sizeof(double)*size);
@@ -67,12 +71,12 @@ int main(int argc, char*argv[]){
         //ez[i] = *p;
         drawW->points.append(*p);
     }
-
+*/
     //drawW.show();
 
 
     layout_V->addWidget(drawW);
-    window->resize(500,500);
+    window->resize(size->x(),size->y()+500);
     window->show();
 
 	return app.exec();
