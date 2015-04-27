@@ -47,8 +47,14 @@ InputsWidget::InputsWidget(QWidget *drawW): QWidget(drawW)
     calc_button = new QPushButton("Calculate");
     grid_layout->addWidget(calc_button,0,4);
     connect(calc_button,SIGNAL(clicked()), this, SLOT(start_calc()));
-    connect(this,SIGNAL(send_start_draw(QList<int>, QList<int>, QList<int>)), \
-            drawW, SLOT(start_draw(QList<int>, QList<int>, QList<int>)));
+    connect(this,SIGNAL(send_start_draw(QList<int>, QList<int>, QList<int>, int)), \
+            drawW, SLOT(start_draw(QList<int>, QList<int>, QList<int>, int)));
+
+    grid_layout->addWidget(new QLabel("Number of points"),1,4);
+    num_line = new QLineEdit();
+    grid_layout->addWidget(num_line,2,4);
+
+
 }
 
 void InputsWidget::start_calc()
@@ -57,6 +63,7 @@ void InputsWidget::start_calc()
     QList<int> x;
     QList<int> y;
     QList<int> t;
+    int size;
 
     x.append(first_x_line->text().toInt(&OK));
     if(!OK)
@@ -86,8 +93,12 @@ void InputsWidget::start_calc()
     if(!OK)
         goto error;
 
+    size = num_line->text().toInt(&OK);
+    if(!OK)
+        goto error;
+
     print_error("");
-    emit send_start_draw(x,y,t);
+    emit send_start_draw(x,y,t,size);
     return;
 
     error:

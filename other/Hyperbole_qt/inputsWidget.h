@@ -19,7 +19,7 @@ protected:
 
 signals:
 
-    void send_start_draw(QList<int> x, QList<int> y, QList<int> t);
+    void send_start_draw(QList<int> x, QList<int> y, QList<int> t, int size);
 
 public slots:
     void start_calc();
@@ -39,6 +39,8 @@ private:
     QLineEdit* third_x_line;
     QLineEdit* third_y_line;
     QLineEdit* third_t_line;
+
+    QLineEdit* num_line;
 
     QLabel * error_label;
 

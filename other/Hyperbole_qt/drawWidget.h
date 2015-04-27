@@ -16,6 +16,7 @@ class DrawWidget : public QWidget
 public:
     QList<QPoint> points;
     QList<QPoint> sensor_points;
+    QList<QPoint> inter_points;
 
     void set_size(QPoint size);
     DrawWidget();
@@ -30,7 +31,7 @@ private:
 signals:
 
 public slots:
-    void start_draw(QList<int> x, QList<int> y, QList<int> t);
+    void start_draw(QList<int> x, QList<int> y, QList<int> t, int size);
     //void start_draw();
 };
 

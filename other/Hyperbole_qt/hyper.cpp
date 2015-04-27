@@ -1,7 +1,49 @@
 #include <hyper.h>
 #include <math.h>
 
+int calc_intersection(double* line_1_x, double* line_1_y, \
+                      double* line_2_x, double* line_2_y, \
+                      int length, double radius, \
+                      double* res_x, double* res_y, \
+                      int num_max_results, int* num_found_results)
+{
+    int i,j;
+    double distance;
+    int res_num;
 
+    res_num = 0;
+    for(i = 0; i < length; i++)
+    {
+        for(j = 0; j < length; j++)
+        {
+            distance = sqrt(pow(*(line_1_x + i) - *(line_2_x + j), 2.0) + \
+                            pow(*(line_1_y + i) - *(line_2_y + j), 2.0));
+            if(distance < radius)
+            {
+                // ket pont felezopontjat adjuk meg eredmenynek
+                *(res_x + res_num) = (*(line_1_x + i) + *(line_2_x + j))/2;
+                *(res_y + res_num) = (*(line_1_y + i) + *(line_2_y + j))/2;
+
+                res_num ++;
+
+                if(res_num >= num_max_results)
+                {
+                    break;
+                }
+
+            }
+        }
+
+        if(res_num >= num_max_results)
+        {
+            break;
+        }
+    }
+
+    *num_found_results = res_num;
+
+    return 0;
+}
 
 
 void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
@@ -160,10 +202,4 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
 
         }
 
-}
-
-
-void test()
-{
-    return;
 }

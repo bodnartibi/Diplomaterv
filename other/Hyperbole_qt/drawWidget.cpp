@@ -50,14 +50,24 @@ void DrawWidget::paintEvent(QPaintEvent *event)
         painter.drawPoint(p.x() + screen_size.x(), p.y() + screen_size.y());
     }
 
+    QPen myPen4(Qt::yellow, 5, Qt::SolidLine);
+
+    painter.setPen(myPen4);
+
+    foreach (QPoint p, inter_points) {
+        painter.drawPoint(p.x() + screen_size.x(), p.y() + screen_size.y());
+    }
+
 
 
 }
 
-void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t)
+
+void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
 {
 
     sensor_points.clear();
+    inter_points.clear();
 
     QPoint* s0 = new QPoint(x.value(0),y.value(0));
     QPoint* s1 = new QPoint(x.value(1),y.value(1));
@@ -67,33 +77,82 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t)
     sensor_points.append(*s1);
     sensor_points.append(*s2);
 
-    int size = 10000;
-    double* res_x;
-    res_x = (double*)malloc(sizeof(double)*size);
-    double* res_y;
-    res_y = (double*)malloc(sizeof(double)*size);
+    double* res_x_1;
+    res_x_1 = (double*)malloc(sizeof(double)*size);
+    double* res_y_1;
+    res_y_1 = (double*)malloc(sizeof(double)*size);
+    double* res_x_2;
+    res_x_2 = (double*)malloc(sizeof(double)*size);
+    double* res_y_2;
+    res_y_2 = (double*)malloc(sizeof(double)*size);
+    double* res_x_3;
+    res_x_3 = (double*)malloc(sizeof(double)*size);
+    double* res_y_3;
+    res_y_3 = (double*)malloc(sizeof(double)*size);
+
 
     points.clear();
 
-    calc_hyper(x.value(0),y.value(0),x.value(1),y.value(1),t.value(0),t.value(1),res_x,res_y, size, 0.0001,1.005);
+    calc_hyper(x.value(0),y.value(0),x.value(1),y.value(1),t.value(0),t.value(1),\
+               res_x_1,res_y_1, size, 0.1,1.001);
 
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint((int)(*(res_x+i)+0.5),(int)(*(res_y+i)+0.5));
+        QPoint* p = new QPoint((int)(*(res_x_1+i)+0.5),(int)(*(res_y_1+i)+0.5));
         points.append(*p);
     }
 
-    calc_hyper(x.value(1),y.value(1),x.value(2),y.value(2),t.value(1),t.value(2),res_x,res_y, size, 0.0001,1.005);
-
+    calc_hyper(x.value(1),y.value(1),x.value(2),y.value(2),t.value(1),t.value(2),\
+               res_x_2,res_y_2, size, 0.1,1.001);
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint((int)(*(res_x+i)+0.5),(int)(*(res_y+i)+0.5));
+        QPoint* p = new QPoint((int)(*(res_x_2+i)+0.5),(int)(*(res_y_2+i)+0.5));
         points.append(*p);
     }
 
-    calc_hyper(x.value(2),y.value(2),x.value(0),y.value(0),t.value(2),t.value(0),res_x,res_y, size, 0.0001,1.005);
-
+    calc_hyper(x.value(2),y.value(2),x.value(0),y.value(0),t.value(2),t.value(0),\
+               res_x_3,res_y_3, size, 0.1,1.001);
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint((int)(*(res_x+i)+0.5),(int)(*(res_y+i)+0.5));
+        QPoint* p = new QPoint((int)(*(res_x_3+i)+0.5),(int)(*(res_y_3+i)+0.5));
         points.append(*p);
+    }
+
+    double* inter_x;
+    inter_x = (double*)malloc(sizeof(double)*size);
+    double* inter_y;
+    inter_y = (double*)malloc(sizeof(double)*size);
+
+    int num_inter;
+
+    calc_intersection(res_x_1, res_y_1, \
+                      res_x_2, res_y_2, \
+                      size, 1.0, \
+                      inter_x, inter_y, \
+                      size, &num_inter);
+
+    for(int i = 0; i < num_inter; i++){
+        QPoint* p = new QPoint((int)(*(inter_x+i)+0.5),(int)(*(inter_y+i)+0.5));
+        inter_points.append(*p);
+    }
+
+    calc_intersection(res_x_2, res_y_2, \
+                      res_x_3, res_y_3, \
+                      size, 1.0, \
+                      inter_x, inter_y, \
+                      size, &num_inter);
+
+    for(int i = 0; i < num_inter; i++){
+        QPoint* p = new QPoint((int)(*(inter_x+i)+0.5),(int)(*(inter_y+i)+0.5));
+        inter_points.append(*p);
+    }
+
+    calc_intersection(res_x_1, res_y_1, \
+                      res_x_3, res_y_3, \
+                      size, 1.0, \
+                      inter_x, inter_y, \
+                      size, &num_inter);
+
+    for(int i = 0; i < num_inter; i++){
+        QPoint* p = new QPoint((int)(*(inter_x+i)+0.5),(int)(*(inter_y+i)+0.5));
+        inter_points.append(*p);
     }
 
     repaint();
