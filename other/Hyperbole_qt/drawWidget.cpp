@@ -50,7 +50,7 @@ void DrawWidget::paintEvent(QPaintEvent *event)
         painter.drawPoint(p.x() + screen_size.x(), p.y() + screen_size.y());
     }
 
-    QPen myPen4(Qt::yellow, 5, Qt::SolidLine);
+    QPen myPen4(Qt::green, 5, Qt::SolidLine);
 
     painter.setPen(myPen4);
 
@@ -94,7 +94,7 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
     points.clear();
 
     calc_hyper(x.value(0),y.value(0),x.value(1),y.value(1),t.value(0),t.value(1),\
-               res_x_1,res_y_1, size, 0.1,1.001);
+               res_x_1,res_y_1, size, 0.05,1.01);
 
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)(*(res_x_1+i)+0.5),(int)(*(res_y_1+i)+0.5));
@@ -102,14 +102,14 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
     }
 
     calc_hyper(x.value(1),y.value(1),x.value(2),y.value(2),t.value(1),t.value(2),\
-               res_x_2,res_y_2, size, 0.1,1.001);
+               res_x_2,res_y_2, size, 0.05,1.01);
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)(*(res_x_2+i)+0.5),(int)(*(res_y_2+i)+0.5));
         points.append(*p);
     }
 
     calc_hyper(x.value(2),y.value(2),x.value(0),y.value(0),t.value(2),t.value(0),\
-               res_x_3,res_y_3, size, 0.1,1.001);
+               res_x_3,res_y_3, size, 0.05,1.01);
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)(*(res_x_3+i)+0.5),(int)(*(res_y_3+i)+0.5));
         points.append(*p);

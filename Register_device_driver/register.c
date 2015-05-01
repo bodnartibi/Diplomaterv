@@ -18,9 +18,6 @@
 #include <linux/io.h>
 
 #define BUFF_SIZE 16
-//TODO ne beégetett címekkel
-#define MYREG_START 0x75c00000
-#define MYREG_LEN 0x10000
 
 int reg_open(struct inode *inode, struct file *filp);
 int reg_release(struct inode *inode, struct file *filp);
@@ -33,8 +30,9 @@ int testreg_major = 200;
 int reg[1];
 char *input_buffer;
 void *regs;
-resource_size_t mem_start = MYREG_START;
-resource_size_t mem_len = MYREG_LEN;
+struct resource *resource; // platform_get_resource visszateresi ertekenek
+unsigned long remap_size;
+
 
 struct file_operations testreg_fops = {
   read: reg_read,
@@ -58,33 +56,33 @@ int reg_release(struct inode *inode, struct file *filp)
 static ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 {
 
-	unsigned int reg_value;
+  unsigned int reg_value;
   /* Transfering data to user space */
   input_buffer[BUFF_SIZE -1] = '\0';
   //copy_to_user(buf, input_buffer, BUFF_SIZE);
   //printk("<1> read %s\n", input_buffer);
 
-	//TODO ioread 
-	reg_value = ioread8(regs);
+  //TODO ioread 
+  reg_value = ioread8(regs);
  
-	printk(KERN_INFO "read %u\n", reg_value);
+  printk(KERN_INFO "read %u\n", reg_value);
 
-	copy_to_user(buf, &reg_value, sizeof(reg_value));
+  copy_to_user(buf, &reg_value, sizeof(reg_value));
   /* Changing reading position as best suits */
-	if (*f_pos == 0) {
+  if (*f_pos == 0) {
     *f_pos += sizeof(reg_value);
     return sizeof(reg_value);
   } else {
     return 0;
   }
-	//return sizeof(reg_value);
+  //return sizeof(reg_value);
 }
 
 
 static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos)
 {
   int c;
-	u8 value;
+  u8 value;
   //tmp = buf + count - 1;
 
   if (count > BUFF_SIZE - 1) {
@@ -94,15 +92,15 @@ static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_
     c = count;
   }
 
-	copy_from_user(input_buffer, buf, c);
+  copy_from_user(input_buffer, buf, c);
   //f_pos += c;
   //printk("write %s\n", input_buffer);
 
-	//TODO iowrite
-	value = (u8)buf[0];
-	printk(KERN_INFO "write: try to write %c\n", value);
-	iowrite8(value, regs);
-	
+  //TODO iowrite
+  value = (u8)buf[0];
+  printk(KERN_INFO "write: try to write %c\n", value);
+  iowrite8(value, regs);
+  
   return c;
 }
 
@@ -116,8 +114,8 @@ static int myregister_remove(struct platform_device *pdev)
     kfree(input_buffer);
   }
 
-	iounmap(regs);
-	release_mem_region(MYREG_START, MYREG_LEN);
+  iounmap(regs);
+  release_mem_region(resource->start, remap_size);
   printk(KERN_INFO "Removing myreg modul\n");
 
   return 0;
@@ -126,7 +124,7 @@ static int myregister_remove(struct platform_device *pdev)
 static int myregister_probe(struct platform_device *pdev)
 {
   int result;
-  
+ 
   printk(KERN_INFO "Probe start\n");
 
 //  match = of_match_device(myregister_match, &op->dev);
@@ -134,14 +132,14 @@ static int myregister_probe(struct platform_device *pdev)
 //  if (!match)
 //    return -EINVAL;
 
-  /* Registering device */
-  result = register_chrdev(testreg_major, "myreg", &testreg_fops);
+  // Regisztraljuk az eszkozvezerlot
+  result = register_chrdev(testreg_major, "my_FPGA_register", &testreg_fops);
   if (result < 0) {
     printk(KERN_ERR "cannot obtain major number %d result: %d\n", testreg_major,result);
     goto fail_reg;
   }
 
-  /* Allocating memory for the buffer */
+  // input buffernek helyet foglalunk
   input_buffer = kmalloc(BUFF_SIZE, GFP_KERNEL); 
   if (!input_buffer) { 
     result = -ENOMEM;
@@ -149,23 +147,21 @@ static int myregister_probe(struct platform_device *pdev)
   } 
   memset(input_buffer, 0, BUFF_SIZE);
 
-	//TODO ne beégetett címmel/hosszal
-//	if(!(check_mem_region(mem_start, mem_len))) {
-//		printk("<1>ERROR check mem region\n");
-//		printk("<1>ERROR mem_start %x mem_len %x\n", mem_start, mem_len);
-//		goto fail_req;
-//	}
+  // lekerdezzuk a periferiahoz tartozo informaciokat
+  resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+  // kiszamoljuk a mereteket
+  printk(KERN_INFO "Addresses: start: %x end: %x\n",resource->start, resource->end);
+  remap_size = resource->end - resource->start + 1;
 
   //TODO ne beégetett címmel/hosszal
-  if (NULL == request_mem_region(mem_start, mem_len, "myreg_mem")) {
-  printk(KERN_ERR "request mem region\n");
-	printk(KERN_ERR "mem_start %x mem_len %x\n", mem_start, mem_len);
+  if (NULL == request_mem_region(resource->start, remap_size, "my_FPGA_register")) {
+  printk(KERN_INFO "request mem region\n");
   //TODO hibakezelés mert ez nem elég itt
   // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
     goto fail_req;
   }  
 
-  regs = ioremap(MYREG_START, MYREG_LEN);
+  regs = ioremap(resource->start, remap_size);
   if(!regs) {
      printk(KERN_ERR "ERROR ioremap\n");
   //TODO rendes hibakezelés
@@ -174,14 +170,14 @@ static int myregister_probe(struct platform_device *pdev)
   printk(KERN_INFO "Inserting myreg module\n"); 
   return 0;
 
-	fail_map:
-	release_mem_region(MYREG_START, MYREG_LEN);
+  fail_map:
+  release_mem_region(resource->start, remap_size);
   fail_req: 
-	kfree(input_buffer);
-	fail_mem:
-	unregister_chrdev(testreg_major, "myreg");
-	fail_reg:
-  return result;	
+  kfree(input_buffer);
+  fail_mem:
+  unregister_chrdev(testreg_major, "myreg");
+  fail_reg:
+  return result;  
   
 }
 
