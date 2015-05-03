@@ -1,6 +1,15 @@
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include <stdio.h>
 #include <math.h>
 #include "hyper.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+
+#include <pthread.h>
 
 int main(int argc, char* argv[])
 {
@@ -26,12 +35,61 @@ int main(int argc, char* argv[])
 
 	int print_points = 0;
 
+  int fds[2];
+  char buf[256];
+  int len;
+  int fdix;
+
+	cpu_set_t cpuset;
+	pthread_t current_thread;
+
 	if(argc > 1)
 	{
 		if(*argv[1] == 'p')
 			print_points = 1;
 	}
 
+  /*
+  fds[0] = open("pipe1", O_RDONLY);
+  if(fds[0] < 0)
+  {
+    perror("open pipe1");
+    return -1;
+  }
+  
+  fds[1] = open("pipe2", O_RDONLY);
+  if(fds[1] < 0)
+  {
+    perror("open pipe2");
+    return -1;
+  }
+  
+  fdix = 0;
+  while(1)
+  {
+    len = read(fds[fdix], buf, sizeof(buf));
+    if(len == 0)
+    {
+      printf("A pipe%d lezarult!\n", fdix + 1);
+      break;
+    }
+    else if(len < 0)
+    {
+      perror("read");
+      return -1;
+    }
+    else
+    {
+			//printf("Read: %s\n",buf);
+      write(STDOUT_FILENO, buf, len);
+    }
+    fdix = (fdix + 1) % 2;
+  }
+  
+  close(fds[0]);
+  close(fds[1]);
+
+	*/
   res_x_1 = (double*)malloc(sizeof(double)*size);
   res_y_1 = (double*)malloc(sizeof(double)*size);
   res_x_2 = (double*)malloc(sizeof(double)*size);
@@ -49,6 +107,18 @@ int main(int argc, char* argv[])
 	t_1 = 20;
 	t_2 = 0;
 	t_3 = 10;
+
+   
+   CPU_ZERO(&cpuset);
+   CPU_SET(1, &cpuset);
+
+   current_thread = pthread_self();    
+   pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
+
+
+
+
+	while(1){
 
   calc_hyper(sen_1_x,sen_1_y,sen_2_x,sen_2_y,t_1,t_2,\
              res_x_1,res_y_1, size, 0.05,1.01);
@@ -98,8 +168,8 @@ int main(int argc, char* argv[])
     printf(" %d %d \n", (int)(*(inter_x +index)+0.5), (int)(*(inter_y +index)+0.5));
   }
 
+	}
 
 
-
-	return 1;
+	return 0;
 }

@@ -1,13 +1,13 @@
 CFLAGS=-I.
 CC_zynq=arm-linux-gnueabi-gcc
 CC=gcc
-#LDFLAGS=-pthread
+LDFLAGS=-pthread
 
 zynq: clean local_app.o_zynq hyper.o_zynq
-	$(CC_zynq) local_app.o hyper.o -o local_app_zynq -lm
+	$(CC_zynq) $(LDFLAGS) local_app.o hyper.o -o local_app_zynq -lm
 
 pc: clean local_app.o hyper.o
-	$(CC) local_app.o hyper.o -o local_app_pc -lm
+	$(CC) $(LDFLAGS) local_app.o hyper.o -o local_app_pc -lm
 
 local_app.o:
 	$(CC) -c local_app.c
