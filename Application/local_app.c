@@ -35,35 +35,71 @@ int main(int argc, char* argv[])
 
 	int print_points = 0;
 
-  int fds[2];
+	int fd_status;
+	int fd_mics[3];
   char buf[256];
   int len;
   int fdix;
 
+	int status_reg_value;
+
 	cpu_set_t cpuset;
 	pthread_t current_thread;
 
-	if(argc > 1)
-	{
-		if(*argv[1] == 'p')
-			print_points = 1;
+	if(argc < 5){
+		printf("%s \nUsage: <status register path> <mic 1 register path> <mic 2 register path> <mic 3 register path> <print points (y/n)>\n", argv[0]);
+		return 0;
+	}
+  printf("Start\n");
+
+	if(*argv[5] == 'y')
+		print_points = 1;
+
+  printf("Opening status reg: %s\n",argv[1]);
+  fd_status = open(argv[1], O_RDONLY | O_NONBLOCK);
+  if(fd_status < 0)
+  {
+    perror("open status reg file");
+    return -1;
+  }
+  
+	for(index = 0; index < 3 ; index++){
+		printf("Opening mic %d: %s\n",index,argv[index+2]);
+	  fd_mics[index] = open(argv[index+2], O_RDONLY | O_NONBLOCK);
+	  if(fd_mics[index] < 0){
+	    perror("open a mic reg file");
+ 	   return -1;
+ 	 }
 	}
 
-  /*
-  fds[0] = open("pipe1", O_RDONLY);
-  if(fds[0] < 0)
-  {
-    perror("open pipe1");
-    return -1;
-  }
+	while(1){
+
+		len = read(fd_status, buf, sizeof(buf));
+		//printf("Read len: %d\n",len);
+    if((len < 0) && (errno != EAGAIN)){
+      perror("read");
+      return EXIT_FAILURE;
+    }
+		if((len < 0) && (errno == EAGAIN)){
+			//printf("Sleep\n");
+			sleep(1);
+			continue;
+		}
+    if(len == 0){
+      printf("Status reg file has been closed\n");
+      break;
+    }
+
+		buf[len] = 0;
+		printf("Size: %lu\n %s",sizeof(status_reg_value),buf);
+		memcpy(&status_reg_value, buf, sizeof(status_reg_value));
+		//snprintf((char*)(&status_reg_value), sizeof(status_reg_value), buf);
+		printf("Read value: %x\n",status_reg_value);
+		//sleep(1);
+
+	}
   
-  fds[1] = open("pipe2", O_RDONLY);
-  if(fds[1] < 0)
-  {
-    perror("open pipe2");
-    return -1;
-  }
-  
+/*
   fdix = 0;
   while(1)
   {
@@ -88,8 +124,10 @@ int main(int argc, char* argv[])
   
   close(fds[0]);
   close(fds[1]);
+*/
+	
+//TODO close files
 
-	*/
   res_x_1 = (double*)malloc(sizeof(double)*size);
   res_y_1 = (double*)malloc(sizeof(double)*size);
   res_x_2 = (double*)malloc(sizeof(double)*size);
@@ -116,9 +154,10 @@ int main(int argc, char* argv[])
    pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
 
 
+	
 
 
-	while(1){
+	//while(1){
 
   calc_hyper(sen_1_x,sen_1_y,sen_2_x,sen_2_y,t_1,t_2,\
              res_x_1,res_y_1, size, 0.05,1.01);
@@ -168,7 +207,7 @@ int main(int argc, char* argv[])
     printf(" %d %d \n", (int)(*(inter_x +index)+0.5), (int)(*(inter_y +index)+0.5));
   }
 
-	}
+	//}
 
 
 	return 0;
