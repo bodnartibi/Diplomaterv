@@ -62,7 +62,7 @@ static ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_po
   //copy_to_user(buf, input_buffer, BUFF_SIZE);
   //printk("<1> read %s\n", input_buffer);
 
-  //TODO ioread 
+  //TODO ioread, igazitani a regisztermerethez
   reg_value = ioread8(regs);
  
   printk(KERN_INFO "read %u\n", reg_value);
@@ -153,7 +153,6 @@ static int myregister_probe(struct platform_device *pdev)
   printk(KERN_INFO "Addresses: start: %x end: %x\n",resource->start, resource->end);
   remap_size = resource->end - resource->start + 1;
 
-  //TODO ne beégetett címmel/hosszal
   if (NULL == request_mem_region(resource->start, remap_size, "my_FPGA_register")) {
   printk(KERN_INFO "request mem region\n");
   //TODO hibakezelés mert ez nem elég itt
