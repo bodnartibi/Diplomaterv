@@ -11,8 +11,14 @@
 
 #include <pthread.h>
 
-int main(int argc, char* argv[])
-{
+#define MIC_1_READY_MASK 0x00ff0000
+#define MIC_2_READY_MASK 0x0000ff00
+#define MIC_3_READY_MASK 0x000000ff
+
+#define ALL_MIC_READY (MIC_1_READY_MASK | MIC_2_READY_MASK | MIC_3_READY_MASK)
+
+int main(int argc, char* argv[]){
+
   double* res_x_1;
   double* res_y_1;
   double* res_x_2;
@@ -24,7 +30,7 @@ int main(int argc, char* argv[])
 	double sen_2_x, sen_2_y;
 	double sen_3_x, sen_3_y;
 
-	long int t_1, t_2, t_3;
+	unsigned int times[3];
 
   double* inter_x;
   double* inter_y;
@@ -43,10 +49,19 @@ int main(int argc, char* argv[])
 
 	int status_reg_value;
 
+	//unsigned ez1 = 1, ez2 = 2;
+	//int az;
+
 	cpu_set_t cpuset;
 	pthread_t current_thread;
 
-	if(argc < 5){
+
+	//az = ez1- ez2;
+	//printf("Start %d\n", az);
+
+	//return 0;
+
+	if(argc < 6){
 		printf("%s \nUsage: <status register path> <mic 1 register path> <mic 2 register path> <mic 3 register path> <print points (y/n)>\n", argv[0]);
 		return 0;
 	}
@@ -91,124 +106,126 @@ int main(int argc, char* argv[])
     }
 
 		buf[len] = 0;
-		printf("Size: %lu\n %s",sizeof(status_reg_value),buf);
+		//printf("Size: %lu\n %s",sizeof(status_reg_value),buf);
 		memcpy(&status_reg_value, buf, sizeof(status_reg_value));
 		//snprintf((char*)(&status_reg_value), sizeof(status_reg_value), buf);
-		printf("Read value: %x\n",status_reg_value);
+		printf("Read value status reg: %x\n",status_reg_value);
 		//sleep(1);
 
-	}
-  
-/*
-  fdix = 0;
-  while(1)
-  {
-    len = read(fds[fdix], buf, sizeof(buf));
-    if(len == 0)
-    {
-      printf("A pipe%d lezarult!\n", fdix + 1);
-      break;
-    }
-    else if(len < 0)
-    {
-      perror("read");
-      return -1;
-    }
-    else
-    {
-			//printf("Read: %s\n",buf);
-      write(STDOUT_FILENO, buf, len);
-    }
-    fdix = (fdix + 1) % 2;
-  }
-  
-  close(fds[0]);
-  close(fds[1]);
-*/
+		// elivleg a x86, x64 és az ARM is little endian
+
+		// ----------------------------------------
+		// Status Reg
+		// [ reserved ] [ mic1 status] [ mic2 status] [ mic3 status ]
+		// ha a mic ready akkor 0xff amugy 0x00
+		//
+
+		if(!(status_reg_value && ALL_MIC_READY)){
+			continue;
+		}
+
+		for(index = 0; index < 3; index++){
+			len = read(fd_mics[index], buf, sizeof(buf));
+			// itt hibanak vesszuk ha nincs mit kiolvasni, hiszen ugy tudjuk h van
+    	if(len < 0){
+      	perror("read");
+      	return EXIT_FAILURE;
+    	}
+			memcpy(&times[index], buf, sizeof(status_reg_value));
+			printf("Read value mic %d reg: %x\n",index + 1, times[index]);
+
+		}
 	
 //TODO close files
 
-  res_x_1 = (double*)malloc(sizeof(double)*size);
-  res_y_1 = (double*)malloc(sizeof(double)*size);
-  res_x_2 = (double*)malloc(sizeof(double)*size);
-  res_y_2 = (double*)malloc(sizeof(double)*size);
-  res_x_3 = (double*)malloc(sizeof(double)*size);
-  res_y_3 = (double*)malloc(sizeof(double)*size);
+		size = 1000;
 
-	sen_1_x = 0.0;
-	sen_1_y = 0.0;
-	sen_2_x = 150.0;
-	sen_2_y = 0.0;
-	sen_3_x = 0.0;
-	sen_3_y = 150.0;
-
-	t_1 = 20;
-	t_2 = 0;
-	t_3 = 10;
-
-   
-   CPU_ZERO(&cpuset);
-   CPU_SET(1, &cpuset);
-
-   current_thread = pthread_self();    
-   pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
-
-
+	  res_x_1 = (double*)malloc(sizeof(double)*size);
+	  res_y_1 = (double*)malloc(sizeof(double)*size);
+	  res_x_2 = (double*)malloc(sizeof(double)*size);
+	  res_y_2 = (double*)malloc(sizeof(double)*size);
+	  res_x_3 = (double*)malloc(sizeof(double)*size);
+	  res_y_3 = (double*)malloc(sizeof(double)*size);
 	
+		sen_1_x = 0.0;
+		sen_1_y = 0.0;
+		sen_2_x = 150.0;
+		sen_2_y = 0.0;
+		sen_3_x = 0.0;
+		sen_3_y = 150.0;
+
+		//times[0] = 20;
+		//times[1] = 0;
+		//times[2] = 10;
+	
+   
+   //CPU_ZERO(&cpuset);
+   //CPU_SET(1, &cpuset);
+
+   //current_thread = pthread_self();    
+   //pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
+	
+		//while(1){
+	
+	  calc_hyper(sen_1_x,sen_1_y,sen_2_x,sen_2_y,times[0],times[1],\
+	             res_x_1,res_y_1, size, 0.05,1.01);
+	
+	  calc_hyper(sen_2_x,sen_2_y,sen_3_x,sen_3_y,times[1],times[2],\
+	             res_x_2,res_y_2, size, 0.05,1.01);
+	
+	  calc_hyper(sen_3_x,sen_3_y,sen_1_x,sen_1_y,times[2],times[0],\
+	             res_x_3,res_y_3, size, 0.05,1.01);
+	
+		if(print_points) {
+			printf("Pontok: %d \n", size);
+		  for(index = 0; index < size; index++){
+		    printf("%d --- %d\t%d\t%d\t%d\t%d\t%d\n", index,
+							(int)(*(res_x_1 +index)+0.5), (int)(*(res_y_1 +index)+0.5),
+							(int)(*(res_x_2 +index)+0.5), (int)(*(res_y_2 +index)+0.5),
+							(int)(*(res_x_3 +index)+0.5), (int)(*(res_y_3 +index)+0.5));
+		  }
+		}
+
+	  inter_x = (double*)malloc(sizeof(double)*size);
+	  inter_y = (double*)malloc(sizeof(double)*size);
+	
+	
+	  calc_intersection(res_x_1, res_y_1, \
+	                    res_x_2, res_y_2, \
+	                    size, 1.0, \
+	                    inter_x, inter_y, \
+	                    size, &num_inter);
+	
+	  calc_intersection(res_x_2, res_y_2, \
+	                    res_x_3, res_y_3, \
+	                    size, 1.0, \
+	                    inter_x, inter_y, \
+	                    size, &num_inter);
+	
+	  calc_intersection(res_x_1, res_y_1, \
+	                    res_x_3, res_y_3, \
+	                    size, 1.0, \
+	                    inter_x, inter_y, \
+	                    size, &num_inter);
 
 
-	//while(1){
 
-  calc_hyper(sen_1_x,sen_1_y,sen_2_x,sen_2_y,t_1,t_2,\
-             res_x_1,res_y_1, size, 0.05,1.01);
-
-  calc_hyper(sen_2_x,sen_2_y,sen_3_x,sen_3_y,t_2,t_3,\
-             res_x_2,res_y_2, size, 0.05,1.01);
-
-  calc_hyper(sen_3_x,sen_3_y,sen_1_x,sen_1_y,t_3,t_1,\
-             res_x_3,res_y_3, size, 0.05,1.01);
-
-	if(print_points) {
-		printf("Pontok: %d \n", size);
-	  for(index = 0; index < size; index++){
-	    printf("%d --- %d\t%d\t%d\t%d\t%d\t%d\n", index,
-						(int)(*(res_x_1 +index)+0.5), (int)(*(res_y_1 +index)+0.5),
-						(int)(*(res_x_2 +index)+0.5), (int)(*(res_y_2 +index)+0.5),
-						(int)(*(res_x_3 +index)+0.5), (int)(*(res_y_3 +index)+0.5));
+		printf("Metszespontok: %d \n", num_inter);
+	  for(index = 0; index < num_inter; index++){
+	    printf(" %d %d \n", (int)(*(inter_x +index)+0.5), (int)(*(inter_y +index)+0.5));
 	  }
+
+
+	  free(res_x_1);
+	  free(res_y_1);
+	  free(res_x_2);
+	  free(res_y_2);
+	  free(res_x_3);
+	  free(res_y_3);
+
+		free(inter_x);
+		free(inter_y);
 	}
-
-  inter_x = (double*)malloc(sizeof(double)*size);
-  inter_y = (double*)malloc(sizeof(double)*size);
-
-
-  calc_intersection(res_x_1, res_y_1, \
-                    res_x_2, res_y_2, \
-                    size, 1.0, \
-                    inter_x, inter_y, \
-                    size, &num_inter);
-
-  calc_intersection(res_x_2, res_y_2, \
-                    res_x_3, res_y_3, \
-                    size, 1.0, \
-                    inter_x, inter_y, \
-                    size, &num_inter);
-
-  calc_intersection(res_x_1, res_y_1, \
-                    res_x_3, res_y_3, \
-                    size, 1.0, \
-                    inter_x, inter_y, \
-                    size, &num_inter);
-
-
-
-	printf("Metszespontok: %d \n", num_inter);
-  for(index = 0; index < num_inter; index++){
-    printf(" %d %d \n", (int)(*(inter_x +index)+0.5), (int)(*(inter_y +index)+0.5));
-  }
-
-	//}
-
 
 	return 0;
 }

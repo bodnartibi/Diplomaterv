@@ -6,7 +6,7 @@
 #include <math.h>
 
 void calc_hyper(double pos_1_x, double pos_1_y, double pos_2_x, double pos_2_y, \
-                long int time_1, long int time_2, \
+                unsigned int time_1, unsigned int time_2, \
                 double* res_x, double* res_y, int res_length, \
                 double step, double gain);
 

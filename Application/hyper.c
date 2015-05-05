@@ -1,5 +1,8 @@
 #include "hyper.h"
 
+// remove
+#include <stdio.h>
+
 int calc_intersection(double* line_1_x, double* line_1_y, \
                       double* line_2_x, double* line_2_y, \
                       int length, double radius, \
@@ -46,7 +49,7 @@ int calc_intersection(double* line_1_x, double* line_1_y, \
 
 
 void calc_hyper(double pos_1_x, double pos_1_y, double pos_2_x, double pos_2_y, \
-                long int time_1,long int time_2, \
+                unsigned int time_1,unsigned int time_2, \
                 double* res_x, double* res_y, int res_length,\
                 double step, double gain
                 )
@@ -93,9 +96,8 @@ void calc_hyper(double pos_1_x, double pos_1_y, double pos_2_x, double pos_2_y, 
     // ciklus index
     int index;
 
-    //if(time_1 >= time_2)
-        sound_distance = (time_1 - time_2)*speed;
-    //else
+    sound_distance = (int)(time_1 - time_2)*speed;
+
     //    sound_distance = (time_2 - time_1)*speed;
     //TODO függnek a dolgok az idokvantumtol (ms, ns)
 
