@@ -37,15 +37,22 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
 //Global
 
-int testreg_major = 200;
+int registers_major = 200;
 int reg[4];
 char *input_buffer;
 void *regs;
 struct resource *resource; // platform_get_resource visszateresi ertekenek
 unsigned long remap_size;
 
+#define CLASS_NAME "FPGA_registers"
+static struct class* regs_class;
 
-struct file_operations testreg_fops = {
+#define STATUS_REG_NAME "Mic_status_reg"
+#define MIC_1_REG_NAME "Mic_1_reg"
+#define MIC_2_REG_NAME "Mic_2_reg"
+#define MIC_3_REG_NAME "Mic_3_reg"
+
+struct file_operations reg_fops = {
   read: reg_read,
   write: reg_write,
   open: reg_open,
@@ -154,8 +161,15 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
 static int myregister_remove(struct platform_device *pdev)
 {
+
+  device_destroy(regs_class, MKDEV(registers_major, 0));
+  device_destroy(regs_class, MKDEV(registers_major, 1));
+  device_destroy(regs_class, MKDEV(registers_major, 2));
+  device_destroy(regs_class, MKDEV(registers_major, 3));
+  class_unregister(regs_class);
+  class_destroy(regs_class);
   /* Freeing the major number */
-  unregister_chrdev(testreg_major, "my_FPGA_registers_device");
+  unregister_chrdev(registers_major, "my_FPGA_registers_device");
 
   /* Freeing buffer memory */
   if (input_buffer) {
@@ -172,7 +186,8 @@ static int myregister_remove(struct platform_device *pdev)
 static int myregister_probe(struct platform_device *pdev)
 {
   int result;
- 
+	struct device* err;
+
   printk(KERN_INFO "Probe start\n");
 
 //  match = of_match_device(myregister_match, &op->dev);
@@ -181,11 +196,19 @@ static int myregister_probe(struct platform_device *pdev)
 //    return -EINVAL;
 
   // Regisztraljuk az eszkozvezerlot
-  result = register_chrdev(testreg_major, "my_FPGA_registers_device", &testreg_fops);
+  result = register_chrdev(0, "my_FPGA_registers_device", &reg_fops);
   if (result < 0) {
-    printk(KERN_ERR "cannot obtain major number %d result: %d\n", testreg_major,result);
+    printk(KERN_ERR "cannot obtain major number %d result: %d\n", registers_major,result);
     goto fail_reg;
   }
+
+	registers_major = result;
+  /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
+  regs_class = class_create(THIS_MODULE, CLASS_NAME);
+  err = device_create(regs_class, NULL, MKDEV(registers_major, 0), NULL, STATUS_REG_NAME);
+  err = device_create(regs_class, NULL, MKDEV(registers_major, 1), NULL, MIC_1_REG_NAME);
+  err = device_create(regs_class, NULL, MKDEV(registers_major, 2), NULL, MIC_2_REG_NAME );
+  err = device_create(regs_class, NULL, MKDEV(registers_major, 3), NULL, MIC_3_REG_NAME );
 
   // input buffernek helyet foglalunk
   input_buffer = kmalloc(BUFF_SIZE, GFP_KERNEL); 
@@ -222,7 +245,7 @@ static int myregister_probe(struct platform_device *pdev)
   fail_req: 
   kfree(input_buffer);
   fail_mem:
-  unregister_chrdev(testreg_major, "my_FPGA_registers_device");
+  unregister_chrdev(registers_major, "my_FPGA_registers_device");
   fail_reg:
   return result;  
   

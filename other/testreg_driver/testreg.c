@@ -17,6 +17,8 @@
 #include <linux/fcntl.h> /* O_ACCMODE */
 #include <asm/uaccess.h> /* copy_from/to_user */
 
+#include <linux/device.h>
+
 #define BUFF_SIZE 16
 int reg_open(struct inode *inode, struct file *filp);
 int reg_release(struct inode *inode, struct file *filp);
@@ -27,6 +29,10 @@ int testreg_init(void);
 
 
 //Global
+
+#define DEVICE_NAME "test"
+#define CLASS_NAME "testclass"
+static struct class* test_class;
 
 int testreg_major = 200;
 int reg[1];
@@ -109,13 +115,17 @@ ssize_t reg_write(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 
 void testreg_exit(void)
 {
-  /* Freeing the major number */
-  unregister_chrdev(testreg_major, module_name);
-
   /* Freeing buffer memory */
   if (input_buffer) {
     kfree(input_buffer);
   }
+
+  device_destroy(test_class, MKDEV(testreg_major, 0));
+  class_unregister(test_class);
+  class_destroy(test_class);
+
+  /* Freeing the major number */
+  unregister_chrdev(testreg_major, module_name);  
   printk(KERN_ALERT "Removing testreg modul\n");
 
 }
@@ -124,6 +134,7 @@ int testreg_init(void)
 {
   int result;
   int mode = 0644;
+	struct device* err;
   // need a char device
   mode |= S_IFCHR;
 
@@ -134,12 +145,18 @@ int testreg_init(void)
 //  }
 //  printk("<1> registered chrdev");
 
-  /* Registering device */
-  result = register_chrdev(testreg_major, module_name, &testreg_fops);
-  if (result < 0) {
-    printk("<1>testreg: cannot obtain major number %d result: %d\n", testreg_major,result);
-    return result;
+  /* Regisztraljuk a karakter tipusu eszkozt. */
+  result = register_chrdev(0, DEVICE_NAME, &testreg_fops);
+	if(result < 0)
+  {
+    printk(DEVICE_NAME " a major szam: %d nem elerheto\n",result);
+    return testreg_major;
   }
+	
+	testreg_major = result;
+  /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
+  test_class = class_create(THIS_MODULE, CLASS_NAME);
+  err = device_create(test_class, NULL, MKDEV(testreg_major, 0), NULL, DEVICE_NAME);
 
   /* Allocating memory for the buffer */
   input_buffer = kmalloc(BUFF_SIZE, GFP_KERNEL); 
