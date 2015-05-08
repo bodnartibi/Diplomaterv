@@ -19,15 +19,26 @@
 
 #define BUFF_SIZE 16
 
-int reg_open(struct inode *inode, struct file *filp);
-int reg_release(struct inode *inode, struct file *filp);
-static ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos);
-static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos);
+// Memory Mapped Register
+// C_BASEADDR + 0x0
+// C_BASEADDR + 0x4
+// C_BASEADDR + 0x8
+// C_BASEADDR + 0xC
+
+#define REG_STATUS_OFFSET 0x0
+#define REG_MIC_1_OFFSET 0x4
+#define REG_MIC_2_OFFSET 0x8
+#define REG_MIC_3_OFFSET 0xC
+
+int reg_open(struct inode *inode, struct file *filep);
+int reg_release(struct inode *inode, struct file *filep);
+static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_pos);
+static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos);
 
 //Global
 
 int testreg_major = 200;
-int reg[1];
+int reg[4];
 char *input_buffer;
 void *regs;
 struct resource *resource; // platform_get_resource visszateresi ertekenek
@@ -41,31 +52,51 @@ struct file_operations testreg_fops = {
   release: reg_release
 };
 
-int reg_open(struct inode *inode, struct file *filp)
+int reg_open(struct inode *inode, struct file *filep)
 {
   return 0;
 }
 
 
-int reg_release(struct inode *inode, struct file *filp)
+int reg_release(struct inode *inode, struct file *filep)
 {
   return 0;
 }
 
 
-static ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
+static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
 
   unsigned int reg_value;
+	
   /* Transfering data to user space */
   input_buffer[BUFF_SIZE -1] = '\0';
   //copy_to_user(buf, input_buffer, BUFF_SIZE);
   //printk("<1> read %s\n", input_buffer);
 
-  //TODO ioread, igazitani a regisztermerethez
-  reg_value = ioread8(regs);
+	// minor 0: status
+	// minor 1: mic 1
+	// minor 2: mic 2
+	// minor 3: mic 3
+	switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
+		case 0:
+	  	reg_value = ioread32(regs + REG_STATUS_OFFSET);
+			break;
+		case 1:
+	  	reg_value = ioread32(regs + REG_MIC_1_OFFSET);
+			break;
+		case 2:
+	  	reg_value = ioread32(regs + REG_MIC_2_OFFSET);
+			break;
+		case 3:
+	  	reg_value = ioread32(regs + REG_MIC_3_OFFSET);
+			break;
+		default:
+			return -EINVAL;
+	}
+
  
-  printk(KERN_INFO "read %u\n", reg_value);
+  printk(KERN_INFO "read %x\n", reg_value);
 
   copy_to_user(buf, &reg_value, sizeof(reg_value));
   /* Changing reading position as best suits */
@@ -79,10 +110,10 @@ static ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_po
 }
 
 
-static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos)
+static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
 {
   int c;
-  u8 value;
+  u32 value;
   //tmp = buf + count - 1;
 
   if (count > BUFF_SIZE - 1) {
@@ -97,9 +128,26 @@ static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_
   //printk("write %s\n", input_buffer);
 
   //TODO iowrite
-  value = (u8)buf[0];
-  printk(KERN_INFO "write: try to write %c\n", value);
-  iowrite8(value, regs);
+  value = *(u32*)buf;
+  printk(KERN_INFO "write: try to write %x\n", value);
+
+	switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
+		case 0:
+	  	iowrite32(value, regs + REG_STATUS_OFFSET);
+			break;
+		case 1:
+	  	iowrite32(value, regs + REG_MIC_1_OFFSET);
+			break;
+		case 2:
+	  	iowrite32(value, regs + REG_MIC_2_OFFSET);
+			break;
+		case 3:
+	  	iowrite32(value, regs + REG_MIC_3_OFFSET);
+			break;
+		default:
+			return -EINVAL;
+	}
+  
   
   return c;
 }
@@ -107,7 +155,7 @@ static ssize_t reg_write(struct file *filp, const char *buf, size_t count, loff_
 static int myregister_remove(struct platform_device *pdev)
 {
   /* Freeing the major number */
-  unregister_chrdev(testreg_major, "myreg");
+  unregister_chrdev(testreg_major, "my_FPGA_registers_device");
 
   /* Freeing buffer memory */
   if (input_buffer) {
@@ -133,7 +181,7 @@ static int myregister_probe(struct platform_device *pdev)
 //    return -EINVAL;
 
   // Regisztraljuk az eszkozvezerlot
-  result = register_chrdev(testreg_major, "my_FPGA_register", &testreg_fops);
+  result = register_chrdev(testreg_major, "my_FPGA_registers_device", &testreg_fops);
   if (result < 0) {
     printk(KERN_ERR "cannot obtain major number %d result: %d\n", testreg_major,result);
     goto fail_reg;
@@ -174,14 +222,14 @@ static int myregister_probe(struct platform_device *pdev)
   fail_req: 
   kfree(input_buffer);
   fail_mem:
-  unregister_chrdev(testreg_major, "myreg");
+  unregister_chrdev(testreg_major, "my_FPGA_registers_device");
   fail_reg:
   return result;  
   
 }
 
 static const struct of_device_id myregister_match[] = {
-        { .compatible = "test_register_1.00.a" },
+        { .compatible = "my_FPGA_registers" },
         {},
 };
 MODULE_DEVICE_TABLE(of, myregister_match);
@@ -190,7 +238,7 @@ static struct platform_driver myregister_driver = {
         .probe = myregister_probe,
         .remove = myregister_remove,
         .driver = {
-                .name = "myregister",
+                .name = "FPGA_registers",
                 .owner = THIS_MODULE,
                 .of_match_table = myregister_match
         },
