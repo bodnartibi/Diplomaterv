@@ -1,7 +1,7 @@
 %%parameters
 clear;
 
-D = 10 ;
+D = 2 ;
 
 % CIC filter
 cic_num = zeros(1,D+1);
