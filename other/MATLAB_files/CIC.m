@@ -33,16 +33,16 @@ bode(ave_h); grid;
 hold off
 
 figure(2)
-plot(step(cic_h),'r')
+plot(step(cic_h),'r+')
 hold on 
-plot(step(ave_h),'g')
+plot(step(ave_h),'bo')
 legend('CIC','Average')
 hold off
 
 figure(3)
-plot(cic_imp_y, 'r')
+plot(cic_imp_y, 'r+')
 hold on
-plot(ave_imp_y, 'g')
+plot(ave_imp_y, 'bo')
 legend('CIC','Average')
 hold off
 title('Impulse responses')
