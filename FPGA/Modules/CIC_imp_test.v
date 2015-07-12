@@ -44,7 +44,9 @@ module CIC_imp_test;
 		.new_data(new_data), 
 		.din(din), 
 		.rate(rate), 
-		.rate_we(rate_we)
+		.rate_we(rate_we),
+		.out(out),
+		.out_rdy(out_rdy)
 	);
 
 	initial begin
@@ -54,7 +56,8 @@ module CIC_imp_test;
 		rst = 0;
 		new_data = 0;
 		din = 0;
-		rate = 0;
+		rate = 15'd2;
+		//rate = 0;
 		rate_we = 0;
 
 		#2;
@@ -66,7 +69,10 @@ module CIC_imp_test;
 		#2;
 		
 		#2;
-		
+		rate_we = 1;
+		#2;
+		rate_we = 0;
+		#2;
 		din = 1;
 		#2;
 		

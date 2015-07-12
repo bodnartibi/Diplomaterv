@@ -1,7 +1,9 @@
 %%parameters
 clear;
 
-D = 2 ;
+D = 25;
+
+N = 3;
 
 % CIC filter
 cic_num = zeros(1,D+1);
@@ -10,7 +12,8 @@ cic_num(D+1) = -1;
 
 cic_den = [1 -1];
 
-cic_h = filt(cic_num,cic_den,0.1)
+cic_h = filt(cic_num,cic_den,0.01)
+cic_h = cic_h^N;
 [cic_imp_y,cic_imp_t] = impulse(cic_h);
 
 % recursive average filter
@@ -19,7 +22,7 @@ ave_num(1) = 1;
 ave_num(D+1) = -1;
 ave_den = D*[1 -1];
 
-ave_h = filt(ave_num,ave_den,0.1)
+ave_h = filt(ave_num,ave_den,0.01)
 [ave_imp_y,ave_imp_t] = impulse(ave_h);
 
 % plot
