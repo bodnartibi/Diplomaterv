@@ -34,8 +34,7 @@ module Buffer(
 	 output reg data_out_valid,
 	 // olvasnak a buffer
 	 input data_out_read,
-	 // az adat a kimeneten
-	 output reg data_out_read_ack,
+	 
 	 input rst,
 	 input clk
     );
@@ -55,7 +54,6 @@ begin
 		// inicializalas
 		data_out <= 0;
 		data_out_valid <= 0;
-		data_out_read_ack <= 0;
 		cntr_first <= 0;
 		cntr_last <= 0;
 		cntr_of_valid_data <= 0;
@@ -69,33 +67,64 @@ begin
 	// ekkor nem adunk ki adatot, de lehet elozo ciklusban igen
 	// igy itt a kimeno jel valid vonalt nullaznunk kell
 	
-	// input oldalnak elsobbsege van
+	// --- Output oldalon kiolvasta a masik fel
+	// data_out_read jel jelzi
+	// legnagyobb prioritasu, hiszen igy tudunk
+	// uriteni a bufferbol
+	// mashol nem nullazzuk a valid jelet,
+	// csak itt szabad, hiszen csak ekkor olvassak ki
+	else if(data_out_read)
+	begin
+		// kevesebb adat maradt a bufferban
+		// TODO tulcsordulas
+		cntr_first <= cntr_first + 1;
+		// ha vna meg adat, akkor kirakjuk azt
+		// ha nincs, akkor levesszuk a kimenetet
+		if(cntr_of_valid_data > {{BUFFER_SIZE-2{1'b0}}, 1'b1})
+		begin
+		//TODO tulcsordulas
+			data_out <= buff[cntr_first + 1];
+		end
+		else
+		begin
+			data_out <= 0;
+			data_out_valid <= 1'b0;
+		end
+		// mindenkepp eggyel kevesebb adatunk van mar csak
+		cntr_of_valid_data <= cntr_of_valid_data - 1;
+		
+		// data_in_valid lehetett az elozo ciklusban
+		data_in_ack <= 1'b0;
+	end
+	
+	// --- Input oldalon szeretnenek beirni
+	// masodik legfontosabb
+	// data_in_valid jelzi
 	else if(data_in_valid)
 	begin
 		buff[cntr_last] <= data_in;
+		// TODO tulcsordulas
 		cntr_last <= cntr_last + 1;
+		// Ezt mindenhol mashol kell lehuznunk nullaba
 		data_in_ack <= 1'b1;
 		cntr_of_valid_data <= cntr_of_valid_data + 1;
-		
-		// kiadott jelekre vonatkozo dolgok
-		// elozo ciklusban lehet adtunk az output oldalra
-		// ezert itt nullazzuk
-		data_out_valid <= 1'b0;
 	end
 	
-	// ack tema meg hatra van, azt meg kellene varni
+	// --- Ha van meg bufferben adat
+	// a fenti esetet nem rontja el,
 	else if(cntr_of_valid_data > 0)
 	begin
 		data_out_valid <= 1'b1;
 		data_out <= buff[cntr_first];
+		// data_in_valid lehetett az elozo ciklusban
+		data_in_ack <= 1'b0;
 	end
-	
+
 	// nincs semmi, ack stb jeleket nullara kell hozni 
 	else
 	begin
-		data_out_valid <= 1'b0;
-		data_out_read_ack <= 1'b0;
-		data_out <= 0;
+		// data_in_valid lehetett az elozo ciklusban
+		data_in_ack <= 1'b0;
 	end
 	
 	

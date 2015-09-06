@@ -34,7 +34,6 @@ module buffer_test;
 	// Outputs
 	wire [8:0] data_out;
 	wire data_out_valid;
-	wire data_out_read_ack;
 	wire data_in_ack;
 
 	// Instantiate the Unit Under Test (UUT)
@@ -45,7 +44,6 @@ module buffer_test;
 		.data_out(data_out), 
 		.data_out_valid(data_out_valid), 
 		.data_out_read(data_out_read), 
-		.data_out_read_ack(data_out_read_ack), 
 		.rst(rst), 
 		.clk(clk)
 	);
@@ -72,7 +70,13 @@ module buffer_test;
 		#2
 		data_in = 9'b000001111;
 		#2
-		data_in_valid = 0;
+		//data_in_valid = 0;
+		data_in = 9'b000000011;
+		#2
+		data_out_read = 1;
+		data_in = 9'b110000011;
+		#2
+		data_out_read = 0;
 		
 		
 		
