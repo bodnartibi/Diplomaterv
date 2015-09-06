@@ -19,16 +19,17 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-//parameter CNTR_WIDTH	= 9;
+parameter CNTR_WIDTH	= 9;
 
 // TODO a hossz itt is vmi definebol jojjon
 //parameter HIGH	=	10'd800;
 //parameter LOW	=	10'd400;
-//parameter STATE_HIGH =	1'b1;
-//parameter STATE_LOW	=	1'b0;
+//ez
+parameter STATE_HIGH =	1'b1;
+parameter STATE_LOW	=	1'b0;
 
 module Threshold(
-    input [9:0] cntr,
+    input [CNTR_WIDTH - 1:0] cntr,
     input cntr_valid,
 	 input rst,
 	 input clk,
@@ -38,8 +39,6 @@ module Threshold(
 reg state;
 wire [9:0] HIGH = 10'd800;
 wire [9:0] LOW = 10'd400;
-wire STATE_HIGH = 1'b1;
-wire STATE_LOW = 1'b0;
 
 always@(posedge clk)
 begin

@@ -1,7 +1,7 @@
 %%parameters
 clear;
 
-D = 10;
+D = 50;
 Ts = 308*10^(-9) %308 ns, STMICROELECTRONICS
 %Ts = 308;
 N = 1;
@@ -42,6 +42,7 @@ hold on
 plot(step(ave_h),'bo')
 legend('CIC','Average')
 hold off
+title('Step responses')
 
 figure(3)
 plot(cic_imp_y, 'r+')
@@ -66,3 +67,4 @@ hold on;
 [h,w] = freqz(ave_num,ave_den,'half',2001);
 plot(w/pi,20*log10(abs(h)),'b')
 hold off;
+legend('CIC','Average')
