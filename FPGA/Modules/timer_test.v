@@ -71,10 +71,22 @@ module timer_test;
 		detected(8'd1);
 		detected(8'd2);
 		#2
-		ack = 1'b0;
+		ack = 1'b1;
 		#2
+		ack = 1'b0;
 		detected(8'd10);
-
+		#2
+		ack = 1'b1;
+		#2
+		ack = 1'b0;
+		#6
+		detect = 1'b1;
+		#2
+		ack = 1'b1;
+		#2
+		ack = 1'b0;
+		
+		
 	end
       
 	always #1 clk = ~clk;

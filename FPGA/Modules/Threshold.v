@@ -19,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-parameter CNTR_WIDTH	= 9;
+parameter CNTR_WIDTH	= 10;
 
 // TODO a hossz itt is vmi definebol jojjon
 //parameter HIGH	=	10'd800;

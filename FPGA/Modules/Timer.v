@@ -31,7 +31,6 @@ module Timer(
 // az a modul, illetve a Threshold modul
 // ekkor lehet, hogy a detect jel a tobb orajelig is magas
 
-reg new_detect;
 reg [31:0] timer;
 
 // a timernek addig kell tartania az erteket,
@@ -41,7 +40,6 @@ always@(posedge clk)
 begin
 	if(rst)
 		begin
-		new_detect <= 1'b0;
 		timer_valid <= 1'b0;
 		timer_out <= 32'd0;
 		timer <= 32'd0;
@@ -52,18 +50,16 @@ begin
 		// ha uj detect jel jott
 		// ha ez meg mindig az elozo,
 		// akkor nem frissitjuk a kimenetet
-		if(detect == 1'b1 && new_detect == 1'b0)
+		if(detect == 1'b1 && timer_valid == 1'b0)
 		begin
 			timer_valid <= 1'b1;
 			timer_out <= timer;
-			new_detect <= 1'b1;
 		end
 		// nyugtaztak a kimenetet,
 		// ezutan varhatjuk a kovetkezo detect jelet
 		else if (timer_valid == 1'b1 && ack == 1'b1)
 		begin
 			timer_valid <= 1'b0;
-			new_detect <= 1'b0;
 		end
 		end
 end
