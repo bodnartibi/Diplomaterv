@@ -66,23 +66,28 @@ module buffer_test;
 		
 		data_in_valid = 1;
 		data_in = 9'b111111111;
-		
 		#2
+		data_in_valid = 0;
+		#2
+		data_in_valid = 1;
 		data_in = 9'b000001111;
 		#2
-		//data_in_valid = 0;
+		data_in_valid = 0;
+		#2
+		data_in_valid = 1;
+		data_out_read = 1;
+		wait(data_in_ack);
+		data_out_read = 0;
 		data_in = 9'b000000011;
 		#2
-		data_out_read = 1;
+		#2
+		
 		data_in = 9'b110000011;
 		#2
-		data_out_read = 0;
+		data_in_valid = 0;
+		//data_out_read = 0;
+		//wait(data_in_ack);
 		
-		
-		
-		
-		
-
 	end
 	
 	always #1 clk = ~clk;

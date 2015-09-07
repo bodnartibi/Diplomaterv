@@ -71,8 +71,6 @@ module timer_test;
 		detected(8'd1);
 		detected(8'd2);
 		#2
-		ack = 1'b1;
-		#2
 		ack = 1'b0;
 		#2
 		detected(8'd10);

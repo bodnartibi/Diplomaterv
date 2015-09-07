@@ -39,7 +39,7 @@ module Buffer(
 	 input clk
     );
 
-// a szelessegeken igazitani kell,
+// TODO a szelessegeken igazitani kell,
 // pl cntr szelessegeket
 reg [DATA_WIDTH - 1:0] buff [0: BUFFER_SIZE -1];
 
@@ -74,7 +74,7 @@ begin
 	// uriteni a bufferbol
 	// mashol nem nullazzuk a valid jelet,
 	// csak itt szabad, hiszen csak ekkor olvassak ki
-	else if(data_out_read)
+	else if(data_out_read && cntr_of_valid_data > {{BUFFER_SIZE{1'b0}}})
 	begin
 		// kevesebb adat maradt a bufferban
 		// TODO tulcsordulas
