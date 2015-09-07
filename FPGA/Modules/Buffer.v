@@ -57,6 +57,7 @@ begin
 		cntr_first <= 0;
 		cntr_last <= 0;
 		cntr_of_valid_data <= 0;
+		data_in_ack <= 0;
 		//for (k = 0; k < BUFFER_SIZE - 1; k = k + 1)
 		//begin
 		//	buff[k] = 0;

@@ -28,13 +28,16 @@ module timer_test;
 	reg clk;
 	reg rst;
 	reg detect;
+	reg ack;
 
 	// Instantiate the Unit Under Test (UUT)
 	Timer uut (
 		.clk(clk), 
 		.rst(rst), 
-		.detect(detect)
+		.detect(detect),
+		.ack(ack)
 	);
+	
 
 	task detected(input [7:0] clk_per);
 	begin
@@ -54,6 +57,7 @@ module timer_test;
 		clk = 0;
 		rst = 0;
 		detect = 0;
+		ack = 0;
 
 		// Wait 100 ns for global reset to finish
 		#10;
@@ -65,8 +69,11 @@ module timer_test;
 		rst = 0;
 		
 		detected(8'd1);
-		#2
 		detected(8'd2);
+		#2
+		ack = 1'b1;
+		#2
+		ack = 1'b0;
 		#2
 		detected(8'd10);
 
