@@ -72,9 +72,9 @@ module top_test;
 		#2
 		rst = 0;
 		#2
-		value(10'd800);		
-		
-		
+		value(10'd800);
+		value(10'd200);
+		value(10'd800);
 
 	end
 	

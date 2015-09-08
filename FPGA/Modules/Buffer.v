@@ -108,7 +108,7 @@ begin
 	// --- Input oldalon szeretnenek beirni
 	// masodik legfontosabb
 	// data_in_valid jelzi
-	else if(data_in_valid && cntr_of_valid_data != {COUNTER_SIZE{1'b1}})
+	else if(data_in_valid && cntr_of_valid_data != {COUNTER_SIZE{1'b1}} && !data_in_ack)
 	begin
 		buff[cntr_last] <= data_in;
 		// TODO tulcsordulas
