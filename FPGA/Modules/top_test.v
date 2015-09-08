@@ -24,6 +24,8 @@
 
 module top_test;
 
+	integer i = 0;
+
 	// Inputs
 	reg [9:0] cntr;
 	reg cntr_valid;
@@ -75,6 +77,26 @@ module top_test;
 		value(10'd800);
 		value(10'd200);
 		value(10'd800);
+		value(10'd200);
+		value(10'd800);
+		value(10'd200);
+		value(10'd800);
+		value(10'd200);
+		#2
+		data_out_read = 1;
+		cntr = 10'd800;
+		cntr_valid = 1'b1;
+		#2
+		cntr_valid = 1'b0;
+		#2 #2 #2
+		data_out_read = 0;
+		#2
+		while(i < 17)
+		begin
+			value(10'd200);
+			value(10'd800);
+			i = i + 1;
+		end
 
 	end
 	
