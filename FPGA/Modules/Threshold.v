@@ -47,11 +47,11 @@ begin
 		state <= STATE_LOW;
 		detect <= 1'b0;
 		end
-	else if(cntr_valid)
+	else
 		begin
 		if(state == STATE_LOW)
 			begin
-			if(cntr >= HIGH)
+			if(cntr >= HIGH && cntr_valid)
 				begin
 				state <= STATE_HIGH;
 				detect <= 1'b1;
@@ -62,7 +62,7 @@ begin
 			begin
 			// csak egy orajelig magas a detect
 			detect <= 1'b0;
-			if(cntr <= LOW)
+			if(cntr <= LOW  && cntr_valid)
 				state <= STATE_LOW;
 			end
 		end

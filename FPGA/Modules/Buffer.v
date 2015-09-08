@@ -19,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-parameter DATA_WIDTH	= 8;
+parameter DATA_WIDTH	= 32;
 parameter BUFFER_SIZE = 16;
 parameter COUNTER_SIZE = 4;
 //integer k;
