@@ -1,0 +1,5 @@
+==========
+Byte order
+==========
+
+promgen -b -w -p bin -data_width 32 -u 0 system.bit -o system.bin

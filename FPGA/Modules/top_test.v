@@ -63,7 +63,7 @@ module top_test;
 		cntr = 0;
 		cntr_valid = 0;
 		rst = 0;
-		clk = 0;
+		clk = 1;
 		data_out_read = 0;
 
 		// Wait 100 ns for global reset to finish
@@ -97,6 +97,13 @@ module top_test;
 			value(10'd800);
 			i = i + 1;
 		end
+		#2
+		data_out_read = 1;
+		#2 #2 #2
+		data_out_read = 0;
+		#6
+		data_out_read = 1;
+		
 
 	end
 	

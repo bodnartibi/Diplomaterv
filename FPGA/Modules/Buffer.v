@@ -81,20 +81,19 @@ begin
 	// uriteni a bufferbol
 	// mashol nem nullazzuk a valid jelet,
 	// csak itt szabad, hiszen csak ekkor olvassak ki
-	else if(data_out_read && cntr_of_valid_data > {{COUNTER_SIZE{1'b0}}})
+	else if(data_out_read)
 	begin
-		// kevesebb adat maradt a bufferban
-		// TODO tulcsordulas
-		cntr_first <= cntr_first + 1;
-		// mindenkepp eggyel kevesebb adatunk van mar csak
-		cntr_of_valid_data <= cntr_of_valid_data - 1;
-		
 		// ha van meg adat, akkor kirakjuk azt
 		// ha nincs, akkor levesszuk a kimenetet
-		if(cntr_of_valid_data > {{COUNTER_SIZE-1{1'b0}}, 1'b1})
+		if(cntr_of_valid_data > {{COUNTER_SIZE{1'b0}}})
 		begin
 		//TODO tulcsordulas
-			data_out <= buff[cntr_first + 1];
+			data_out <= buff[cntr_first];
+			//eggyel kevesebb adatunk van mar csak
+		   cntr_of_valid_data <= cntr_of_valid_data - 1;
+			// kevesebb adat maradt a bufferban
+		   // TODO tulcsordulas
+		   cntr_first <= cntr_first + 1;
 		end
 		else
 		begin
