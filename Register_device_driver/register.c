@@ -76,11 +76,12 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
 
   unsigned int reg_value;
 	
-  /* Transfering data to user space */
-  input_buffer[BUFF_SIZE -1] = '\0';
-  //copy_to_user(buf, input_buffer, BUFF_SIZE);
-  //printk("<1> read %s\n", input_buffer);
-
+  // Magat a regisztert csak egyszer akarjuk kiolvasni egy fajlmuvelet alatt,
+  // igy a msodik korben mar koran visszaterunk, ay olvasas elott
+  if (*f_pos != 0) {
+    return 0;
+  }
+  
 	// minor 0: status
 	// minor 1: mic 1
 	// minor 2: mic 2
@@ -106,14 +107,10 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
   printk(KERN_INFO "read %x\n", reg_value);
 
   copy_to_user(buf, &reg_value, sizeof(reg_value));
-  /* Changing reading position as best suits */
-  if (*f_pos == 0) {
-    *f_pos += sizeof(reg_value);
-    return sizeof(reg_value);
-  } else {
-    return 0;
-  }
-  //return sizeof(reg_value);
+
+  *f_pos += sizeof(reg_value);
+  return sizeof(reg_value);
+
 }
 
 
