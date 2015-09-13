@@ -132,6 +132,8 @@ begin
 	begin
 		// data_in_valid lehetett az elozo ciklusban
 		data_in_ack <= 1'b0;
+		data_out_valid <= 1'b0;
+		data_out <= 0;
 	end
 	
 	

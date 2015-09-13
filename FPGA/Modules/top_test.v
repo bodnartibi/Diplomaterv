@@ -88,7 +88,7 @@ module top_test;
 		cntr_valid = 1'b1;
 		#2
 		cntr_valid = 1'b0;
-		#2 #2 #2
+		#2 #2 #6
 		data_out_read = 0;
 		#2
 		while(i < 17)
@@ -103,8 +103,13 @@ module top_test;
 		data_out_read = 0;
 		#6
 		data_out_read = 1;
+		#26
+		data_out_read = 0;
+      #4
+		data_out_read = 1;
+		#2
+		data_out_read = 0;
 		
-
 	end
 	
 	always #1 clk = ~clk;
