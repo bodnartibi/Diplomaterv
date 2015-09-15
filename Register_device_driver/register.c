@@ -41,7 +41,9 @@ int registers_major = 200;
 int reg[4];
 char *input_buffer;
 void *regs;
-struct resource *resource; // platform_get_resource visszateresi ertekenek
+// platform_get_resource visszateresi ertekeneinek
+struct resource *resource_mem;
+struct resource *resource_irq;
 unsigned long remap_size;
 
 #define CLASS_NAME "FPGA_registers"
@@ -174,16 +176,22 @@ static int myregister_remove(struct platform_device *pdev)
   }
 
   iounmap(regs);
-  release_mem_region(resource->start, remap_size);
+  release_mem_region(resource_mem->start, remap_size);
   printk(KERN_INFO "Removing myreg modul\n");
 
   return 0;
+}
+static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
+{
+	reg[0] = ioread32(regs + REG_STATUS_OFFSET);
+	printk(KERN_INFO "read in interrupt %x", reg[0]);
+	return IRQ_HANDLED;
 }
 
 static int myregister_probe(struct platform_device *pdev)
 {
   int result;
-	struct device* err;
+  struct device* err;
 
   printk(KERN_INFO "Probe start\n");
 
@@ -216,19 +224,28 @@ static int myregister_probe(struct platform_device *pdev)
   memset(input_buffer, 0, BUFF_SIZE);
 
   // lekerdezzuk a periferiahoz tartozo informaciokat
-  resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+  // masodik parameter az ioport.h-ban talalhato
+  resource_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
   // kiszamoljuk a mereteket
-  printk(KERN_INFO "Addresses: start: %x end: %x\n",resource->start, resource->end);
-  remap_size = resource->end - resource->start + 1;
+  printk(KERN_INFO "Addresses: start: %x end: %x\n",resource_mem->start, resource_mem->end);
+  remap_size = resource_mem->end - resource_mem->start + 1;
 
-  if (NULL == request_mem_region(resource->start, remap_size, "my_FPGA_register")) {
+  resource_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+  printk(KERN_INFO "IRQ: start: %x end: %x\n",resource_irq->start, resource_irq->end);
+  result = request_irq(resource_irq->start, myregister_irq_handler, 0, "my_FPGA_IRQ", 0);
+  if (result < 0) {
+    printk(KERN_ERR "cannot request IRQ: %d\n", result);
+    goto fail_reg;
+  }
+  
+  if (NULL == request_mem_region(resource_mem->start, remap_size, "my_FPGA_register")) {
   printk(KERN_INFO "request mem region\n");
   //TODO hibakezelés mert ez nem elég itt
   // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
     goto fail_req;
   }  
 
-  regs = ioremap(resource->start, remap_size);
+  regs = ioremap(resource_mem->start, remap_size);
   if(!regs) {
      printk(KERN_ERR "ERROR ioremap\n");
   //TODO rendes hibakezelés
@@ -238,7 +255,7 @@ static int myregister_probe(struct platform_device *pdev)
   return 0;
 
   fail_map:
-  release_mem_region(resource->start, remap_size);
+  release_mem_region(resource_mem->start, remap_size);
   fail_req: 
   kfree(input_buffer);
   fail_mem:
