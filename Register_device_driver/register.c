@@ -178,6 +178,7 @@ static int myregister_remove(struct platform_device *pdev)
 
   iounmap(regs);
   release_mem_region(resource_mem->start, remap_size);
+  free_irq(resource_irq->start,pdev);
   printk(KERN_INFO "Removing myreg modul\n");
 
   return 0;
@@ -233,11 +234,10 @@ static int myregister_probe(struct platform_device *pdev)
 
   resource_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
   printk(KERN_INFO "IRQ: start: %x end: %x\n",resource_irq->start, resource_irq->end);
-  // TODO REMOVE es hibakezeles
   result = request_irq(resource_irq->start, myregister_irq_handler, 0, "my_FPGA_IRQ", pdev);
   if (result < 0) {
     printk(KERN_ERR "cannot request IRQ: %d\n", result);
-    goto fail_reg;
+    goto fail_irq;
   }
   
   if (NULL == request_mem_region(resource_mem->start, remap_size, "my_FPGA_register")) {
@@ -258,7 +258,9 @@ static int myregister_probe(struct platform_device *pdev)
 
   fail_map:
   release_mem_region(resource_mem->start, remap_size);
-  fail_req: 
+  fail_req:
+  free_irq(resource_irq->start,pdev);
+  fail_irq:
   kfree(input_buffer);
   fail_mem:
   unregister_chrdev(registers_major, "my_FPGA_registers_device");
