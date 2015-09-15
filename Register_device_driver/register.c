@@ -16,6 +16,7 @@
 #include <linux/platform_device.h>
 #include <asm/io.h>
 #include <linux/io.h>
+#include <linux/interrupt.h> /*interrupt*/
 
 #define BUFF_SIZE 16
 
@@ -184,7 +185,7 @@ static int myregister_remove(struct platform_device *pdev)
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
 	reg[0] = ioread32(regs + REG_STATUS_OFFSET);
-	printk(KERN_INFO "read in interrupt %x", reg[0]);
+	printk(KERN_INFO "read in interrupt %x\n", reg[0]);
 	return IRQ_HANDLED;
 }
 
@@ -232,7 +233,8 @@ static int myregister_probe(struct platform_device *pdev)
 
   resource_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
   printk(KERN_INFO "IRQ: start: %x end: %x\n",resource_irq->start, resource_irq->end);
-  result = request_irq(resource_irq->start, myregister_irq_handler, 0, "my_FPGA_IRQ", 0);
+  // TODO REMOVE es hibakezeles
+  result = request_irq(resource_irq->start, myregister_irq_handler, 0, "my_FPGA_IRQ", pdev);
   if (result < 0) {
     printk(KERN_ERR "cannot request IRQ: %d\n", result);
     goto fail_reg;
