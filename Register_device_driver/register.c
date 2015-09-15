@@ -38,6 +38,7 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
 //Global
 
+// Felul fogjuk irni
 int registers_major = 200;
 int reg[4];
 char *input_buffer;
@@ -203,13 +204,14 @@ static int myregister_probe(struct platform_device *pdev)
 //    return -EINVAL;
 
   // Regisztraljuk az eszkozvezerlot
+  // dinamukis majorszamot kerunk
   result = register_chrdev(0, "my_FPGA_registers_device", &reg_fops);
   if (result < 0) {
-    printk(KERN_ERR "cannot obtain major number %d result: %d\n", registers_major,result);
+    printk(KERN_ERR "cannot register chrdev: %d\n", result);
     goto fail_reg;
   }
 
-	registers_major = result;
+  registers_major = result;
   /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
   regs_class = class_create(THIS_MODULE, CLASS_NAME);
   err = device_create(regs_class, NULL, MKDEV(registers_major, 0), NULL, STATUS_REG_NAME);
