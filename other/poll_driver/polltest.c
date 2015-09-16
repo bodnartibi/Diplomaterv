@@ -42,6 +42,7 @@ int testreg_major = 200;
 int reg[1];
 char *input_buffer;
 char module_name[] = "polltest";
+int ready = 0;
 
 struct file_operations testreg_fops = {
   read: reg_read,
@@ -58,7 +59,9 @@ unsigned int reg_poll(struct file *filp, poll_table *wait )
   unsigned int mask = 0;
   printk("<1> poll\n");
   poll_wait( filp, &wq, wait );
-  //mask |= ( POLLIN | POLLRDNORM );
+  if (ready)
+  	mask |= ( POLLIN | POLLRDNORM );
+  ready = 0;
   return mask;
 }
 
@@ -81,12 +84,12 @@ ssize_t reg_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
   copy_to_user(buf, input_buffer, BUFF_SIZE);
   printk("<1> read %s\n", input_buffer);
   /* Changing reading position as best suits */ 
-  if (*f_pos == 0) { 
+//  if (*f_pos == 0) { 
     *f_pos += BUFF_SIZE; 
     return BUFF_SIZE; 
-  } else { 
-    return 0; 
-  }
+//  } else { 
+//    return 0; 
+//  }
 }
 
 
@@ -105,6 +108,7 @@ ssize_t reg_write(struct file *filp, char *buf, size_t count, loff_t *f_pos)
   
   copy_from_user(input_buffer, buf, c);
   //f_pos += c;
+  ready = 1;
   wake_up(&wq);
   printk("write %s\n", input_buffer);
   return c;

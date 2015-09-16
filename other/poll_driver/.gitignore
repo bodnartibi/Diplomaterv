@@ -1,0 +1,7 @@
+userspace_poll
+*.ko
+*.mod.*
+*.o
+.*
+Module.symvers
+modules.order
