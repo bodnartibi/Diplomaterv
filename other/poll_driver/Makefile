@@ -15,8 +15,20 @@ KDIR=/usr/src/linux-headers-`uname -r`/
 #	$(MAKE) -C $(KDIR) ARCH=$(ARCH) CROSS_COMPILE=$(COMPILER) SUBDIRS=$(PWD) clean
 
 PWD := $(shell pwd)
-default:
+
+CC_zynq=arm-linux-gnueabi-gcc
+CC=gcc
+
+default: zynq modul
+
+zynq:
+	$(CC_zynq)  userspace_poll.c   -o userspace_poll
+
+pc:
+	$(CC)  userspace_poll.c   -o userspace_poll
+
+modul:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
 clean:
+	rm -f *o
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) clean
-

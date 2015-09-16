@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
   fd_set inset;
   int maxfd;
   
-  fd = open("/dev/polltest", O_RDONLY | O_NONBLOCK);
+  fd = open("/dev/Mic_status_reg", O_RDONLY | O_NONBLOCK);
   if(fd < 0)
   {
     perror("open");

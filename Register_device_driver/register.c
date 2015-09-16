@@ -17,6 +17,8 @@
 #include <asm/io.h>
 #include <linux/io.h>
 #include <linux/interrupt.h> /*interrupt*/
+#include <linux/poll.h>
+#include <linux/sched.h>
 
 #define BUFF_SIZE 16
 
@@ -35,6 +37,7 @@ int reg_open(struct inode *inode, struct file *filep);
 int reg_release(struct inode *inode, struct file *filep);
 static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_pos);
 static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos);
+unsigned int reg_poll(struct file *filp, poll_table *wait);
 
 //Global
 
@@ -47,6 +50,7 @@ void *regs;
 struct resource *resource_mem;
 struct resource *resource_irq;
 unsigned long remap_size;
+int reg_ready;
 
 #define CLASS_NAME "FPGA_registers"
 static struct class* regs_class;
@@ -60,8 +64,24 @@ struct file_operations reg_fops = {
   read: reg_read,
   write: reg_write,
   open: reg_open,
-  release: reg_release
+  release: reg_release,
+  poll: reg_poll
 };
+
+DECLARE_WAIT_QUEUE_HEAD(wq);
+
+unsigned int reg_poll(struct file *filp, poll_table *wait )
+{
+  unsigned int mask = 0;
+  printk(KERN_INFO "poll: called\n");
+  poll_wait( filp, &wq, wait );
+  if (reg_ready) {
+    printk(KERN_INFO "poll: ready\n");
+  	mask |= ( POLLIN | POLLRDNORM );
+  }
+  printk(KERN_INFO "poll: end\n");
+  return mask;
+}
 
 int reg_open(struct inode *inode, struct file *filep)
 {
@@ -82,7 +102,10 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
 	
   // Magat a regisztert csak egyszer akarjuk kiolvasni egy fajlmuvelet alatt,
   // igy a msodik korben mar koran visszaterunk, ay olvasas elott
-  if (*f_pos != 0) {
+  // poll eseten nem akarjuk, hogy 0-val terjunk vissza, mert akkor lezarul az
+  // olvasas. Ezert ha reg_ready van, azaz az interrupt miatt van olvasas,
+  // akkor nem terunk vissza
+  if (*f_pos != 0 && !reg_ready) {
     return 0;
   }
   
@@ -92,7 +115,9 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
 	// minor 3: mic 3
 	switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
 		case 0:
-	  	reg_value = ioread32(regs + REG_STATUS_OFFSET);
+	  	//reg_value = ioread32(regs + REG_STATUS_OFFSET);
+      //TEMP
+      reg_value = reg[0];
 			break;
 		case 1:
 	  	reg_value = ioread32(regs + REG_MIC_1_OFFSET);
@@ -112,6 +137,7 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
 
   copy_to_user(buf, &reg_value, sizeof(reg_value));
 
+  reg_ready = 0;
   *f_pos += sizeof(reg_value);
   return sizeof(reg_value);
 
@@ -187,7 +213,10 @@ static int myregister_remove(struct platform_device *pdev)
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
 	reg[0] = ioread32(regs + REG_STATUS_OFFSET);
-	printk(KERN_INFO "read in interrupt %x\n", reg[0]);
+	printk(KERN_INFO "interrupt: read %x\n", reg[0]);
+  reg_ready = 1;
+  wake_up(&wq);
+  printk(KERN_INFO "interrupt: after wake_up \n");
 	return IRQ_HANDLED;
 }
 
@@ -196,6 +225,7 @@ static int myregister_probe(struct platform_device *pdev)
   int result;
   struct device* err;
 
+  reg_ready = 0;
   printk(KERN_INFO "Probe start\n");
 
 //  match = of_match_device(myregister_match, &op->dev);
