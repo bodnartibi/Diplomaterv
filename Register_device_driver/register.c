@@ -38,15 +38,15 @@ unsigned int reg_poll(struct file *filp, poll_table *wait);
 
 // Felul fogjuk irni
 int registers_major = 200;
-int reg[3];
+int reg[3] = {0,0,0};
 char *input_buffer;
 void *regs;
 // platform_get_resource visszateresi ertekeneinek
 struct resource *resource_mem;
 struct resource *resource_irq;
-int IRQ[3];
+int IRQ[3] = {0,0,0};
 unsigned long remap_size;
-int reg_ready;
+int reg_ready[3] = {0,0,0};
 
 #define CLASS_NAME "FPGA_registers"
 static struct class* regs_class;
@@ -63,16 +63,38 @@ struct file_operations reg_fops = {
   poll: reg_poll
 };
 
-DECLARE_WAIT_QUEUE_HEAD(wq);
+DECLARE_WAIT_QUEUE_HEAD(wq0);
+DECLARE_WAIT_QUEUE_HEAD(wq1);
+DECLARE_WAIT_QUEUE_HEAD(wq2);
 
-unsigned int reg_poll(struct file *filp, poll_table *wait )
+unsigned int reg_poll(struct file *filep, poll_table *wait )
 {
   unsigned int mask = 0;
   printk(KERN_INFO "poll: called\n");
-  poll_wait( filp, &wq, wait );
-  if (reg_ready) {
-    printk(KERN_INFO "poll: ready\n");
-  	mask |= ( POLLIN | POLLRDNORM );
+  switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
+    case 0:
+      poll_wait( filep, &wq0, wait );
+      if (reg_ready[0]) {
+        printk(KERN_INFO "poll 0: ready\n");
+        mask |= ( POLLIN | POLLRDNORM );
+      }
+      break;
+    case 1:
+      poll_wait( filep, &wq1, wait );
+      if (reg_ready[1]) {
+        printk(KERN_INFO "poll 1: ready\n");
+        mask |= ( POLLIN | POLLRDNORM );
+      }
+      break;
+    case 2:
+      poll_wait( filep, &wq2, wait );
+      if (reg_ready[2]) {
+        printk(KERN_INFO "poll 2: ready\n");
+        mask |= ( POLLIN | POLLRDNORM );
+      }
+      break;
+    default:
+      return -EINVAL;
   }
   printk(KERN_INFO "poll: end\n");
   return mask;
@@ -94,40 +116,37 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
 {
 
   unsigned int reg_value;
-	
+  
   // Magat a regisztert csak egyszer akarjuk kiolvasni egy fajlmuvelet alatt,
   // igy a msodik korben mar koran visszaterunk, ay olvasas elott
   // poll eseten nem akarjuk, hogy 0-val terjunk vissza, mert akkor lezarul az
   // olvasas. Ezert ha reg_ready van, azaz az interrupt miatt van olvasas,
   // akkor nem terunk vissza
-  if (*f_pos != 0 && !reg_ready) {
+  if (*f_pos != 0 && !reg_ready[MINOR(filep->f_dentry->d_inode->i_rdev)]) {
     return 0;
   }
   
-	// minor 0: status
-	// minor 1: mic 1
-	// minor 2: mic 2
-	// minor 3: mic 3
-	switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
-		case 0:
-	  	reg_value = ioread32(regs + reg_offsets[0]);
-			break;
-		case 1:
-	  	reg_value = ioread32(regs + reg_offsets[1]);
-			break;
-		case 2:
-	  	reg_value = ioread32(regs + reg_offsets[2]);
-			break;
-		default:
-			return -EINVAL;
-	}
+  // minor 1: mic 0
+  // minor 2: mic 1
+  // minor 3: mic 2
+  switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
+    case 0:
+      reg_value = ioread32(regs + reg_offsets[0]);
+      break;
+    case 1:
+      reg_value = ioread32(regs + reg_offsets[1]);
+      break;
+    case 2:
+      reg_value = ioread32(regs + reg_offsets[2]);
+      break;
+    default:
+      return -EINVAL;
+  }
 
- 
   printk(KERN_INFO "read %x\n", reg_value);
-
   copy_to_user(buf, &reg_value, sizeof(reg_value));
 
-  reg_ready = 0;
+  reg_ready[MINOR(filep->f_dentry->d_inode->i_rdev)] = 0;
   *f_pos += sizeof(reg_value);
   return sizeof(reg_value);
 
@@ -155,19 +174,19 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
   value = *(u32*)buf;
   printk(KERN_INFO "write: try to write %x\n", value);
 
-	switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
-		case 0:
-	  	iowrite32(value, regs + reg_offsets[0]);
-			break;
-		case 1:
-	  	iowrite32(value, regs + reg_offsets[1]);
-			break;
-		case 2:
-	  	iowrite32(value, regs + reg_offsets[2]);
-			break;
-		default:
-			return -EINVAL;
-	}
+  switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
+    case 0:
+      iowrite32(value, regs + reg_offsets[0]);
+      break;
+    case 1:
+      iowrite32(value, regs + reg_offsets[1]);
+      break;
+    case 2:
+      iowrite32(value, regs + reg_offsets[2]);
+      break;
+    default:
+      return -EINVAL;
+  }
   
   
   return c;
@@ -191,6 +210,7 @@ static int myregister_remove(struct platform_device *pdev)
 
   iounmap(regs);
   release_mem_region(resource_mem->start, remap_size);
+  //TODO összesre
   free_irq(resource_irq->start,pdev);
   printk(KERN_INFO "Removing myreg modul\n");
 
@@ -198,12 +218,28 @@ static int myregister_remove(struct platform_device *pdev)
 }
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
-	reg[irq] = ioread32(regs + reg_offsets[irq]);
-	printk(KERN_INFO "interrupt %d: read %x\n", irq, reg[irq]);
-  reg_ready = 1;
-  wake_up(&wq);
+  int reg_index;
+  if (irq == IRQ[0]) {
+    reg_index = 0;
+    wake_up(&wq0);
+  }
+  else if (irq == IRQ[1]) {
+    reg_index = 1;
+    wake_up(&wq1);
+  }
+  else if (irq == IRQ[2]) {
+    reg_index = 2;
+    wake_up(&wq2);
+  }
+  else {
+    printk(KERN_ERR "interrupt: invalid irq %d\n", irq);
+    return IRQ_NONE;
+  }
   printk(KERN_INFO "interrupt %d: after wake_up \n", irq);
-	return IRQ_HANDLED;
+  reg[reg_index] = ioread32(regs + reg_offsets[reg_index]);
+  printk(KERN_INFO "interrupt %d: read %x index %d offset %x\n", irq, reg[reg_index], reg_index, reg_offsets[reg_index]);
+  reg_ready[reg_index] = 1;
+  return IRQ_HANDLED;
 }
 
 
@@ -212,7 +248,6 @@ static int myregister_probe(struct platform_device *pdev)
   int result;
   struct device* err;
 
-  reg_ready = 0;
   printk(KERN_INFO "Probe start\n");
 
 //  match = of_match_device(myregister_match, &op->dev);
