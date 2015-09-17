@@ -20,7 +20,12 @@ int main(int argc, char* argv[])
   fd_set inset;
   int maxfd;
   
-  fd = open("/dev/Mic_status_reg", O_RDONLY | O_NONBLOCK);
+  if(argc <2)
+  {
+		printf("Usage: <path of file>\n");
+    return 0;
+  }
+  fd = open(argv[1], O_RDONLY | O_NONBLOCK);
   if(fd < 0)
   {
     perror("open");

@@ -22,16 +22,11 @@
 
 #define BUFF_SIZE 16
 
-// Memory Mapped Register
-// C_BASEADDR + 0x0
-// C_BASEADDR + 0x4
-// C_BASEADDR + 0x8
-// C_BASEADDR + 0xC
-
-#define REG_STATUS_OFFSET 0x0
 #define REG_MIC_1_OFFSET 0x4
 #define REG_MIC_2_OFFSET 0x8
 #define REG_MIC_3_OFFSET 0xC
+
+int reg_offsets[3] = {REG_MIC_1_OFFSET, REG_MIC_2_OFFSET, REG_MIC_3_OFFSET};
 
 int reg_open(struct inode *inode, struct file *filep);
 int reg_release(struct inode *inode, struct file *filep);
@@ -43,19 +38,19 @@ unsigned int reg_poll(struct file *filp, poll_table *wait);
 
 // Felul fogjuk irni
 int registers_major = 200;
-int reg[4];
+int reg[3];
 char *input_buffer;
 void *regs;
 // platform_get_resource visszateresi ertekeneinek
 struct resource *resource_mem;
 struct resource *resource_irq;
+int IRQ[3];
 unsigned long remap_size;
 int reg_ready;
 
 #define CLASS_NAME "FPGA_registers"
 static struct class* regs_class;
 
-#define STATUS_REG_NAME "Mic_status_reg"
 #define MIC_1_REG_NAME "Mic_1_reg"
 #define MIC_2_REG_NAME "Mic_2_reg"
 #define MIC_3_REG_NAME "Mic_3_reg"
@@ -115,18 +110,13 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
 	// minor 3: mic 3
 	switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
 		case 0:
-	  	//reg_value = ioread32(regs + REG_STATUS_OFFSET);
-      //TEMP
-      reg_value = reg[0];
+	  	reg_value = ioread32(regs + reg_offsets[0]);
 			break;
 		case 1:
-	  	reg_value = ioread32(regs + REG_MIC_1_OFFSET);
+	  	reg_value = ioread32(regs + reg_offsets[1]);
 			break;
 		case 2:
-	  	reg_value = ioread32(regs + REG_MIC_2_OFFSET);
-			break;
-		case 3:
-	  	reg_value = ioread32(regs + REG_MIC_3_OFFSET);
+	  	reg_value = ioread32(regs + reg_offsets[2]);
 			break;
 		default:
 			return -EINVAL;
@@ -167,16 +157,13 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
 	switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
 		case 0:
-	  	iowrite32(value, regs + REG_STATUS_OFFSET);
+	  	iowrite32(value, regs + reg_offsets[0]);
 			break;
 		case 1:
-	  	iowrite32(value, regs + REG_MIC_1_OFFSET);
+	  	iowrite32(value, regs + reg_offsets[1]);
 			break;
 		case 2:
-	  	iowrite32(value, regs + REG_MIC_2_OFFSET);
-			break;
-		case 3:
-	  	iowrite32(value, regs + REG_MIC_3_OFFSET);
+	  	iowrite32(value, regs + reg_offsets[2]);
 			break;
 		default:
 			return -EINVAL;
@@ -192,7 +179,6 @@ static int myregister_remove(struct platform_device *pdev)
   device_destroy(regs_class, MKDEV(registers_major, 0));
   device_destroy(regs_class, MKDEV(registers_major, 1));
   device_destroy(regs_class, MKDEV(registers_major, 2));
-  device_destroy(regs_class, MKDEV(registers_major, 3));
   class_unregister(regs_class);
   class_destroy(regs_class);
   /* Freeing the major number */
@@ -212,13 +198,14 @@ static int myregister_remove(struct platform_device *pdev)
 }
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
-	reg[0] = ioread32(regs + REG_STATUS_OFFSET);
-	printk(KERN_INFO "interrupt: read %x\n", reg[0]);
+	reg[irq] = ioread32(regs + reg_offsets[irq]);
+	printk(KERN_INFO "interrupt %d: read %x\n", irq, reg[irq]);
   reg_ready = 1;
   wake_up(&wq);
-  printk(KERN_INFO "interrupt: after wake_up \n");
+  printk(KERN_INFO "interrupt %d: after wake_up \n", irq);
 	return IRQ_HANDLED;
 }
+
 
 static int myregister_probe(struct platform_device *pdev)
 {
@@ -243,11 +230,11 @@ static int myregister_probe(struct platform_device *pdev)
 
   registers_major = result;
   /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
+  // TODO hibakezelés
   regs_class = class_create(THIS_MODULE, CLASS_NAME);
-  err = device_create(regs_class, NULL, MKDEV(registers_major, 0), NULL, STATUS_REG_NAME);
-  err = device_create(regs_class, NULL, MKDEV(registers_major, 1), NULL, MIC_1_REG_NAME);
-  err = device_create(regs_class, NULL, MKDEV(registers_major, 2), NULL, MIC_2_REG_NAME );
-  err = device_create(regs_class, NULL, MKDEV(registers_major, 3), NULL, MIC_3_REG_NAME );
+  err = device_create(regs_class, NULL, MKDEV(registers_major, 0), NULL, MIC_1_REG_NAME);
+  err = device_create(regs_class, NULL, MKDEV(registers_major, 1), NULL, MIC_2_REG_NAME );
+  err = device_create(regs_class, NULL, MKDEV(registers_major, 2), NULL, MIC_3_REG_NAME );
 
   // input buffernek helyet foglalunk
   input_buffer = kmalloc(BUFF_SIZE, GFP_KERNEL); 
@@ -264,11 +251,27 @@ static int myregister_probe(struct platform_device *pdev)
   printk(KERN_INFO "Addresses: start: %x end: %x\n",resource_mem->start, resource_mem->end);
   remap_size = resource_mem->end - resource_mem->start + 1;
 
-  resource_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-  printk(KERN_INFO "IRQ: start: %x end: %x\n",resource_irq->start, resource_irq->end);
-  result = request_irq(resource_irq->start, myregister_irq_handler, 0, "my_FPGA_IRQ", pdev);
+  //resource_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+  //printk(KERN_INFO "IRQ: start: %x end: %x\n",resource_irq->start, resource_irq->end);
+  IRQ[0] = platform_get_irq(pdev,0);
+  printk(KERN_INFO "IRQ0: %x\n",IRQ[0]);
+  IRQ[1] = platform_get_irq(pdev,1);
+  printk(KERN_INFO "IRQ1: %x\n",IRQ[1]);
+  IRQ[2] = platform_get_irq(pdev,2);
+  printk(KERN_INFO "IRQ2: %x\n",IRQ[2]);
+  result = request_irq(IRQ[0], myregister_irq_handler, 0, "my_FPGA_IRQ1", pdev);
   if (result < 0) {
-    printk(KERN_ERR "cannot request IRQ: %d\n", result);
+    printk(KERN_ERR "cannot request IRQ 1: %d\n", result);
+    goto fail_irq;
+  }
+  result = request_irq(IRQ[1], myregister_irq_handler, 0, "my_FPGA_IRQ2", pdev);
+  if (result < 0) {
+    printk(KERN_ERR "cannot request IRQ 2: %d\n", result);
+    goto fail_irq;
+  }  
+  result = request_irq(IRQ[2], myregister_irq_handler, 0, "my_FPGA_IRQ3", pdev);
+  if (result < 0) {
+    printk(KERN_ERR "cannot request IRQ 3: %d\n", result);
     goto fail_irq;
   }
   
