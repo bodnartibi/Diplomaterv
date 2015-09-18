@@ -50,6 +50,8 @@ const char* file_names[] = { "Mic_1_reg", "Mic_2_reg", "Mic_3_reg" };
 // Memoria regiok nevei
 const char* mem_region_names[] = { "FPGA_MIC_1", "FPGA_MIC_2", "FPGA_MIC_3" };
 
+const char* irq_names[] = { "my_FPGA_IRQ1", "my_FPGA_IRQ2", "my_FPGA_IRQ3" };
+
 struct file_operations reg_fops = {
   read: reg_read,
   write: reg_write,
@@ -125,9 +127,9 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
   // minor 1: mic 0
   // minor 2: mic 1
   // minor 3: mic 2
-  reg_value = ioread32(registers_addr[minor]);
+  reg_value = reg[minor];
 
-  printk(KERN_INFO "read from reg %x: %x\n", *(unsigned int*)registers_addr[minor], reg_value);
+  printk(KERN_INFO "read from address %x: %x\n", (unsigned int)registers_addr[minor], reg_value);
   copy_to_user(buf, &reg_value, sizeof(reg_value));
 
   reg_ready[minor] = 0;
@@ -193,6 +195,7 @@ static int myregister_remove(struct platform_device *pdev)
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
   int reg_index;
+  printk(KERN_ERR "interrupt: called irq %d\n", irq);
   if (irq == IRQ[0]) {
     reg_index = 0;
     wake_up(&wq0);
@@ -210,9 +213,11 @@ static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
     return IRQ_NONE;
   }
   printk(KERN_INFO "interrupt %d: after wake_up \n", irq);
+
   reg[reg_index] = ioread32(registers_addr[reg_index]);
-  printk(KERN_INFO "interrupt %d: read %x index %d address %x\n", irq, reg[reg_index], reg_index, *(unsigned int*)registers_addr[reg_index]);
+  printk(KERN_INFO "interrupt %d: read %x index %d address %x\n", irq, reg[reg_index], reg_index, (unsigned int)registers_addr[reg_index]);
   reg_ready[reg_index] = 1;
+
   return IRQ_HANDLED;
 }
 
@@ -267,6 +272,8 @@ static int myregister_probe(struct platform_device *pdev)
     }
 
     registers_addr[index] = ioremap(resource_mem[index]->start, remap_size[index]);
+    printk(KERN_INFO "Remap address: %x\n",(unsigned int)registers_addr[index]);
+
     if(!registers_addr[index]) {
       printk(KERN_ERR "ERROR ioremap\n");
       //TODO rendes hibakezelés
@@ -276,8 +283,7 @@ static int myregister_probe(struct platform_device *pdev)
     IRQ[index] = platform_get_irq(pdev,index);
     printk(KERN_INFO "IRQ%d: %x\n", index, IRQ[index]);
 
-    //TODO string tombbe
-    result = request_irq(IRQ[index], myregister_irq_handler, 0, "my_FPGA_IRQ1", pdev);
+    result = request_irq(IRQ[index], myregister_irq_handler, 0, irq_names[index], pdev);
     if (result < 0) {
       printk(KERN_ERR "cannot request IRQ %d: %d\n", index, result);
       goto fail_irq;

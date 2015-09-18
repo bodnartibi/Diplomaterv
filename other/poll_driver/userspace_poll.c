@@ -60,20 +60,20 @@ int main(int argc, char* argv[])
       if(FD_ISSET(fd[i], &inset))
       {
         len = read(fd[i], buf, sizeof(buf));
-	if(len == 0)
-	{
-	  printf("A pipe %d lezarult!\n", i);
-	  return EXIT_SUCCESS;
-	}
-	else if((len < 0) && (errno != EAGAIN))
-	{
-	  perror("read");
-	  return EXIT_FAILURE;
-	}
-	else if(len > 0)
-	{
-	  write(STDOUT_FILENO, buf, len);
-	}
+        if(len == 0)
+        {
+          printf("A pipe %d lezarult!\n", i);
+          return EXIT_SUCCESS;
+        }
+        else if((len < 0) && (errno != EAGAIN))
+        {
+          perror("read");
+          return EXIT_FAILURE;
+        }
+        else if(len > 0)
+        {
+        printf("Userpace read: %x\n",*(unsigned int*)&buf[0]);
+        }
       }
     }
   }
