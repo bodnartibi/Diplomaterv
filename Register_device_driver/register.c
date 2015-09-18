@@ -21,13 +21,7 @@
 #include <linux/sched.h>
 
 // 4 byte adatot tudunk irni
-#define BUFF_SIZE 4
-
-#define REG_MIC_1_OFFSET 0x4
-#define REG_MIC_2_OFFSET 0x8
-#define REG_MIC_3_OFFSET 0xC
-
-int reg_offsets[3] = {REG_MIC_1_OFFSET, REG_MIC_2_OFFSET, REG_MIC_3_OFFSET};
+#define BUFF_SIZE 5
 
 int reg_open(struct inode *inode, struct file *filep);
 int reg_release(struct inode *inode, struct file *filep);
@@ -41,20 +35,20 @@ unsigned int reg_poll(struct file *filp, poll_table *wait);
 int registers_major = 200;
 int reg[3] = {0,0,0};
 char *input_buffer;
-void *regs;
+void *registers_addr[3];
 // platform_get_resource visszateresi ertekeneinek
-struct resource *resource_mem;
-struct resource *resource_irq;
+struct resource *resource_mem[3];
 int IRQ[3] = {0,0,0};
-unsigned long remap_size;
+unsigned long remap_size[3];
 int reg_ready[3] = {0,0,0};
 
 #define CLASS_NAME "FPGA_registers"
 static struct class* regs_class;
 
-#define MIC_1_REG_NAME "Mic_1_reg"
-#define MIC_2_REG_NAME "Mic_2_reg"
-#define MIC_3_REG_NAME "Mic_3_reg"
+// File-ok nevei
+const char* file_names[] = { "Mic_1_reg", "Mic_2_reg", "Mic_3_reg" };
+// Memoria regiok nevei
+const char* mem_region_names[] = { "FPGA_MIC_1", "FPGA_MIC_2", "FPGA_MIC_3" };
 
 struct file_operations reg_fops = {
   read: reg_read,
@@ -131,9 +125,9 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
   // minor 1: mic 0
   // minor 2: mic 1
   // minor 3: mic 2
-  reg_value = ioread32(regs + reg_offsets[minor]);
+  reg_value = ioread32(registers_addr[minor]);
 
-  printk(KERN_INFO "read from reg %x: %x\n", regs + reg_offsets[minor], reg_value);
+  printk(KERN_INFO "read from reg %x: %x\n", *(unsigned int*)registers_addr[minor], reg_value);
   copy_to_user(buf, &reg_value, sizeof(reg_value));
 
   reg_ready[minor] = 0;
@@ -153,8 +147,8 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
   // 32 bit (4 byte) adatot tudunk egyszerre irni
   // felkeszulunk arra, hogy egy stringet kapunk (+1)
   // mindenkepp az elso 4 byte lesz kiirva
-  if (count > BUFF_SIZE + 1) {
-    c = BUFF_SIZE + 1;
+  if (count > BUFF_SIZE) {
+    c = BUFF_SIZE;
   }
   else {
     c = count;
@@ -162,15 +156,16 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
   copy_from_user(input_buffer, buf, c);
   value = *(u32*)buf;
-  printk(KERN_INFO "write: try to write into reg %x: %x\n", regs + reg_offsets[minor], value);
+  printk(KERN_INFO "write: try to write into reg %x: %x\n", *(unsigned int*)registers_addr[minor], value);
 
-  iowrite32(value, regs + reg_offsets[minor]);
+  iowrite32(value, registers_addr[minor]);
 
   return c;
 }
 
 static int myregister_remove(struct platform_device *pdev)
 {
+  int index;
 
   device_destroy(regs_class, MKDEV(registers_major, 0));
   device_destroy(regs_class, MKDEV(registers_major, 1));
@@ -185,14 +180,16 @@ static int myregister_remove(struct platform_device *pdev)
     kfree(input_buffer);
   }
 
-  iounmap(regs);
-  release_mem_region(resource_mem->start, remap_size);
-  //TODO összesre
-  free_irq(resource_irq->start,pdev);
+  for (index = 0; index < 3; index++) {
+    iounmap(registers_addr[index]);
+    release_mem_region(resource_mem[index]->start, remap_size[index]);
+    free_irq(IRQ[index], pdev);
+  }
   printk(KERN_INFO "Removing myreg modul\n");
 
   return 0;
 }
+
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
   int reg_index;
@@ -213,8 +210,8 @@ static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
     return IRQ_NONE;
   }
   printk(KERN_INFO "interrupt %d: after wake_up \n", irq);
-  reg[reg_index] = ioread32(regs + reg_offsets[reg_index]);
-  printk(KERN_INFO "interrupt %d: read %x index %d offset %x\n", irq, reg[reg_index], reg_index, reg_offsets[reg_index]);
+  reg[reg_index] = ioread32(registers_addr[reg_index]);
+  printk(KERN_INFO "interrupt %d: read %x index %d address %x\n", irq, reg[reg_index], reg_index, *(unsigned int*)registers_addr[reg_index]);
   reg_ready[reg_index] = 1;
   return IRQ_HANDLED;
 }
@@ -224,13 +221,9 @@ static int myregister_probe(struct platform_device *pdev)
 {
   int result;
   struct device* err;
+  int index;
 
   printk(KERN_INFO "Probe start\n");
-
-//  match = of_match_device(myregister_match, &op->dev);
-
-//  if (!match)
-//    return -EINVAL;
 
   // Regisztraljuk az eszkozvezerlot
   // dinamukis majorszamot kerunk
@@ -241,12 +234,6 @@ static int myregister_probe(struct platform_device *pdev)
   }
 
   registers_major = result;
-  /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
-  // TODO hibakezelés
-  regs_class = class_create(THIS_MODULE, CLASS_NAME);
-  err = device_create(regs_class, NULL, MKDEV(registers_major, 0), NULL, MIC_1_REG_NAME);
-  err = device_create(regs_class, NULL, MKDEV(registers_major, 1), NULL, MIC_2_REG_NAME );
-  err = device_create(regs_class, NULL, MKDEV(registers_major, 2), NULL, MIC_3_REG_NAME );
 
   // input buffernek helyet foglalunk
   input_buffer = kmalloc(BUFF_SIZE, GFP_KERNEL);
@@ -256,57 +243,58 @@ static int myregister_probe(struct platform_device *pdev)
   }
   memset(input_buffer, 0, BUFF_SIZE);
 
-  // lekerdezzuk a periferiahoz tartozo informaciokat
-  // masodik parameter az ioport.h-ban talalhato
-  resource_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-  // kiszamoljuk a mereteket
-  printk(KERN_INFO "Addresses: start: %x end: %x\n",resource_mem->start, resource_mem->end);
-  remap_size = resource_mem->end - resource_mem->start + 1;
+  /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
+  regs_class = class_create(THIS_MODULE, CLASS_NAME);
+  //TODO hibakezeles
 
-  //resource_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-  //printk(KERN_INFO "IRQ: start: %x end: %x\n",resource_irq->start, resource_irq->end);
-  IRQ[0] = platform_get_irq(pdev,0);
-  printk(KERN_INFO "IRQ0: %x\n",IRQ[0]);
-  IRQ[1] = platform_get_irq(pdev,1);
-  printk(KERN_INFO "IRQ1: %x\n",IRQ[1]);
-  IRQ[2] = platform_get_irq(pdev,2);
-  printk(KERN_INFO "IRQ2: %x\n",IRQ[2]);
-  result = request_irq(IRQ[0], myregister_irq_handler, 0, "my_FPGA_IRQ1", pdev);
-  if (result < 0) {
-    printk(KERN_ERR "cannot request IRQ 1: %d\n", result);
-    goto fail_irq;
-  }
-  result = request_irq(IRQ[1], myregister_irq_handler, 0, "my_FPGA_IRQ2", pdev);
-  if (result < 0) {
-    printk(KERN_ERR "cannot request IRQ 2: %d\n", result);
-    goto fail_irq;
-  }
-  result = request_irq(IRQ[2], myregister_irq_handler, 0, "my_FPGA_IRQ3", pdev);
-  if (result < 0) {
-    printk(KERN_ERR "cannot request IRQ 3: %d\n", result);
-    goto fail_irq;
+  for (index = 0; index < 3 ; index++) {
+
+    err = device_create(regs_class, NULL, MKDEV(registers_major, index), NULL, file_names[index]);
+
+    // lekerdezzuk a periferiahoz tartozo informaciokat
+    // masodik parameter az ioport.h-ban talalhato
+    resource_mem[index] = platform_get_resource(pdev, IORESOURCE_MEM, index);
+
+    // kiszamoljuk a mereteket
+    printk(KERN_INFO "Addresses: start: %x end: %x\n",resource_mem[index]->start, resource_mem[index]->end);
+    remap_size[index] = resource_mem[index]->end - resource_mem[index]->start + 1;
+
+    if (NULL == request_mem_region(resource_mem[index]->start, remap_size[index], mem_region_names[index])) {
+      printk(KERN_ERR "request mem region\n");
+      //TODO hibakezelés mert ez nem elég itt
+      // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
+      goto fail_req;
+    }
+
+    registers_addr[index] = ioremap(resource_mem[index]->start, remap_size[index]);
+    if(!registers_addr[index]) {
+      printk(KERN_ERR "ERROR ioremap\n");
+      //TODO rendes hibakezelés
+      goto fail_map;
+    }
+
+    IRQ[index] = platform_get_irq(pdev,index);
+    printk(KERN_INFO "IRQ%d: %x\n", index, IRQ[index]);
+
+    //TODO string tombbe
+    result = request_irq(IRQ[index], myregister_irq_handler, 0, "my_FPGA_IRQ1", pdev);
+    if (result < 0) {
+      printk(KERN_ERR "cannot request IRQ %d: %d\n", index, result);
+      goto fail_irq;
+    }
   }
 
-  if (NULL == request_mem_region(resource_mem->start, remap_size, "my_FPGA_register")) {
-  printk(KERN_INFO "request mem region\n");
-  //TODO hibakezelés mert ez nem elég itt
-  // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
-    goto fail_req;
-  }
-
-  regs = ioremap(resource_mem->start, remap_size);
-  if(!regs) {
-     printk(KERN_ERR "ERROR ioremap\n");
-  //TODO rendes hibakezelés
-    goto fail_map;
-  }
-  printk(KERN_INFO "Inserting myreg module\n");
+  printk(KERN_INFO "Inserting myreg module succes\n");
   return 0;
 
   fail_map:
-  release_mem_region(resource_mem->start, remap_size);
+  release_mem_region(resource_mem[0]->start, remap_size[0]);
+  release_mem_region(resource_mem[1]->start, remap_size[1]);
+  release_mem_region(resource_mem[2]->start, remap_size[2]);
   fail_req:
-  free_irq(resource_irq->start,pdev);
+  free_irq(IRQ[0],pdev);
+  free_irq(IRQ[1],pdev);
+  free_irq(IRQ[2],pdev);
   fail_irq:
   kfree(input_buffer);
   fail_mem:
