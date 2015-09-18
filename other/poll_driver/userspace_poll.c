@@ -12,46 +12,57 @@
 
 int main(int argc, char* argv[])
 {
-  int fd;
+  int fd[3];
   char buf[256];
   int len;
   int fdix;
   fd_set watchset;
   fd_set inset;
   int maxfd;
+  int i;
   
-  if(argc <2)
+  if(argc <4)
   {
-		printf("Usage: <path of file>\n");
+    printf("Usage: 3 pathes of files\n");
     return 0;
   }
-  fd = open(argv[1], O_RDONLY | O_NONBLOCK);
-  if(fd < 0)
+
+  for (i = 0; i<3; i++)
   {
-    perror("open");
-    return EXIT_FAILURE;
+    fd[i] = open(argv[i+1], O_RDONLY | O_NONBLOCK);
+    if(fd[i] < 0)
+    {
+      perror("open");
+      return EXIT_FAILURE;
+    }
   }
-  
-  
-  FD_ZERO(&watchset);
-  FD_SET(fd, &watchset);
-  maxfd = fd;
-  
+ 
   while(1)
   {
+    FD_ZERO(&watchset);
+    maxfd = 0;
+    for ( i=0; i<3; i++)
+    {
+      FD_SET(fd[i], &watchset);
+      if(fd[i] > maxfd)
+        maxfd = fd[i];
+    }
+
     inset = watchset;
     if(select(maxfd + 1, &inset, NULL, NULL, NULL) < 0)
     {
       perror("select");
       return EXIT_FAILURE;
     }
-    
-      if(FD_ISSET(fd, &inset))
+
+    for ( i=0; i<3; i++)
+    {
+      if(FD_ISSET(fd[i], &inset))
       {
-	len = read(fd, buf, sizeof(buf));
+        len = read(fd[i], buf, sizeof(buf));
 	if(len == 0)
 	{
-	  printf("A pipe%d lezarult!\n", fdix + 1);
+	  printf("A pipe %d lezarult!\n", i);
 	  return EXIT_SUCCESS;
 	}
 	else if((len < 0) && (errno != EAGAIN))
@@ -64,9 +75,13 @@ int main(int argc, char* argv[])
 	  write(STDOUT_FILENO, buf, len);
 	}
       }
+    }
   }
-  
-  close(fd);
+
+  for (i = 0; i<3; i++)
+  {
+    close(fd[i]);
+  }
   
   return EXIT_SUCCESS;
 }
