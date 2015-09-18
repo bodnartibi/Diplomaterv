@@ -57,11 +57,14 @@ DECLARE_WAIT_QUEUE_HEAD(wq);
 unsigned int reg_poll(struct file *filp, poll_table *wait )
 {
   unsigned int mask = 0;
-  printk("<1> poll\n");
+  printk("<1> poll begin\n");
   poll_wait( filp, &wq, wait );
-  if (ready)
+  if (ready){
+        ready = 0;
   	mask |= ( POLLIN | POLLRDNORM );
-  ready = 0;
+        printk("<1> poll ready\n");
+  }
+  printk("<1> poll end\n");
   return mask;
 }
 
@@ -169,7 +172,7 @@ int testreg_init(void)
   } 
   memset(input_buffer, 0, BUFF_SIZE);
 
-  printk(KERN_INFO "Inserting testreg module\n"); 
+  printk(KERN_INFO "--- Inserting testreg module\n"); 
   return 0;
 
   fail: 
