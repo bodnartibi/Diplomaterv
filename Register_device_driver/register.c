@@ -19,6 +19,7 @@
 #include <linux/interrupt.h> /*interrupt*/
 #include <linux/poll.h>
 #include <linux/sched.h>
+#include <linux/workqueue.h>
 
 // 4 byte adatot tudunk irni
 #define BUFF_SIZE 5
@@ -28,6 +29,7 @@ int reg_release(struct inode *inode, struct file *filep);
 static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_pos);
 static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos);
 unsigned int reg_poll(struct file *filp, poll_table *wait);
+static void work_fn(struct work_struct* work);
 
 //Global
 
@@ -49,8 +51,12 @@ static struct class* regs_class;
 const char* file_names[] = { "Mic_1_reg", "Mic_2_reg", "Mic_3_reg" };
 // Memoria regiok nevei
 const char* mem_region_names[] = { "FPGA_MIC_1", "FPGA_MIC_2", "FPGA_MIC_3" };
-
+// Irq nevek
 const char* irq_names[] = { "my_FPGA_IRQ1", "my_FPGA_IRQ2", "my_FPGA_IRQ3" };
+
+static struct workqueue_struct* workQ;
+// kulon taskok kellenek, mivel ha egy task a queueban van, azt nem rakjuk be ismet
+static struct work_struct task[3];
 
 struct file_operations reg_fops = {
   read: reg_read,
@@ -63,6 +69,16 @@ struct file_operations reg_fops = {
 DECLARE_WAIT_QUEUE_HEAD(wq0);
 DECLARE_WAIT_QUEUE_HEAD(wq1);
 DECLARE_WAIT_QUEUE_HEAD(wq2);
+
+static void work_fn(struct work_struct* work) {
+  printk(KERN_INFO "work_fn: called\n");
+  if (reg_ready[0])
+    wake_up(&wq0);
+  if (reg_ready[1])
+    wake_up(&wq1);
+  if (reg_ready[2])
+    wake_up(&wq2);
+}
 
 unsigned int reg_poll(struct file *filep, poll_table *wait )
 {
@@ -187,6 +203,8 @@ static int myregister_remove(struct platform_device *pdev)
     release_mem_region(resource_mem[index]->start, remap_size[index]);
     free_irq(IRQ[index], pdev);
   }
+
+  destroy_workqueue(workQ);
   printk(KERN_INFO "Removing myreg modul\n");
 
   return 0;
@@ -198,21 +216,19 @@ static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
   printk(KERN_ERR "interrupt: called irq %d\n", irq);
   if (irq == IRQ[0]) {
     reg_index = 0;
-    wake_up(&wq0);
   }
   else if (irq == IRQ[1]) {
     reg_index = 1;
-    wake_up(&wq1);
   }
   else if (irq == IRQ[2]) {
     reg_index = 2;
-    wake_up(&wq2);
   }
   else {
     printk(KERN_ERR "interrupt: invalid irq %d\n", irq);
     return IRQ_NONE;
   }
-  printk(KERN_INFO "interrupt %d: after wake_up \n", irq);
+  queue_work(workQ, &task[reg_index]);
+  printk(KERN_INFO "interrupt %d: insert task into queue\n", irq);
 
   reg[reg_index] = ioread32(registers_addr[reg_index]);
   printk(KERN_INFO "interrupt %d: read %x index %d address %x\n", irq, reg[reg_index], reg_index, (unsigned int)registers_addr[reg_index]);
@@ -289,6 +305,15 @@ static int myregister_probe(struct platform_device *pdev)
       goto fail_irq;
     }
   }
+
+  // Workqueue létrehozás
+  workQ = create_workqueue("FPGA_registers_workqueue");
+  if(!workQ) {
+    printk(KERN_ERR "create_workqueue return with 0");
+  }
+  INIT_WORK(&task[0], work_fn);
+  INIT_WORK(&task[1], work_fn);
+  INIT_WORK(&task[2], work_fn);
 
   printk(KERN_INFO "Inserting myreg module succes\n");
   return 0;
