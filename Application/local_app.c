@@ -105,6 +105,8 @@ void* worker_fn(void* arg){
   int index = 0;
   int valid;
 
+  double cross_threshold;
+
   while(1){
 
     pthread_mutex_lock(&mutex_common);
@@ -120,6 +122,8 @@ void* worker_fn(void* arg){
 
     if(!(t_ready[0] && t_ready[1] && t_ready[2]))
       continue;
+
+    printf("Start to calculate\n");
 
     res_x_1 = (double*)malloc(sizeof(double)*size);
     res_y_1 = (double*)malloc(sizeof(double)*size);
@@ -159,23 +163,43 @@ void* worker_fn(void* arg){
     inter_x = (double*)malloc(sizeof(double)*size);
     inter_y = (double*)malloc(sizeof(double)*size);
 
-    calc_intersection(res_x_1, res_y_1, \
-                      res_x_2, res_y_2, \
-                      size, 1.0, \
-                      inter_x, inter_y, \
-                      size, &num_inter);
+    cross_threshold = 0.01;
+    while(1) {
+      cross_threshold = cross_threshold + 0.01;
+      calc_intersection(res_x_1, res_y_1, \
+                        res_x_2, res_y_2, \
+                        size, cross_threshold, \
+                        inter_x, inter_y, \
+                        size, &num_inter);
+      printf("%d point find, thres: %f \n", num_inter, cross_threshold);
 
-    calc_intersection(res_x_2, res_y_2, \
-                      res_x_3, res_y_3, \
-                      size, 1.0, \
-                      inter_x, inter_y, \
-                      size, &num_inter);
+      if(num_inter == 0)
+        continue;
 
-    calc_intersection(res_x_1, res_y_1, \
-                      res_x_3, res_y_3, \
-                      size, 1.0, \
-                      inter_x, inter_y, \
-                      size, &num_inter);
+      calc_intersection(res_x_2, res_y_2, \
+                        res_x_3, res_y_3, \
+                        size, cross_threshold, \
+                        inter_x, inter_y, \
+                        size, &num_inter);
+
+      printf("%d point find, thres: %f \n", num_inter, cross_threshold);
+
+      if(num_inter == 0)
+        continue;
+
+      calc_intersection(res_x_1, res_y_1, \
+                        res_x_3, res_y_3, \
+                        size, cross_threshold, \
+                        inter_x, inter_y, \
+                        size, &num_inter);
+
+      printf("%d point find, thres: %f \n", num_inter, cross_threshold);
+
+      if(num_inter == 0)
+        continue;
+
+      break;
+    }
 
     printf("Metszespontok: %d \n", num_inter);
     for(index = 0; index < num_inter; index++){
