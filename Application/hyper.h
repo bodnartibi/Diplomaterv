@@ -2,26 +2,36 @@
 #define HYPER_H
 
 // 331.5 + 0.6*T  m/s
-#define SOUND_SPEED 34300  // mm/ms
+//#define SOUND_SPEED 34300  // mm/ms
+#define SOUND_SPEED 3.430
 // 50 MHz counter -> 20 ns
 #define TIME_QUANTUM 0.0002 // ms
 // position must be in mm
 
 #include <math.h>
 
-int is_timestamps_correct(double pos_1_x, double pos_1_y, \
-                          double pos_2_x, double pos_2_y, \
-                          unsigned int time_1, unsigned int time_2);
+typedef struct point_ {
+    double x;
+    double y;
+}point;
 
-void calc_hyper(double pos_1_x, double pos_1_y, double pos_2_x, double pos_2_y, \
-                unsigned int time_1, unsigned int time_2, \
-                double* res_x, double* res_y, int res_length, \
+typedef struct sensor_point_ {
+    point p;
+    unsigned int time;
+}sensor_point;
+
+
+int is_timestamps_correct(sensor_point s_1, \
+                          sensor_point s_2);
+
+void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
+                point* res, int res_length, \
                 double step, double gain);
 
-int calc_intersection(double* line_1_x, double* line_1_y, \
-                      double* line_2_x, double* line_2_y, \
+int calc_intersection(point* line_1, \
+                      point* line_2, \
                       int length, double radius, \
-                      double* res_x, double* res_y, \
+                      point* res, \
                       int num_max_results, int* num_found_results);
 
 #endif // HYPER_H

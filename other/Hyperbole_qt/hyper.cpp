@@ -1,10 +1,28 @@
-#include <hyper.h>
-#include <math.h>
+#include "hyper.h"
 
-int calc_intersection(double* line_1_x, double* line_1_y, \
-                      double* line_2_x, double* line_2_y, \
+// remove
+#include <stdio.h>
+
+int is_timestamps_correct(sensor_point s_1, \
+                          sensor_point s_2)
+{
+    /*
+    int sound_dist;
+    int sensor_dist;
+
+    sensor_dist = sqrt(pow(s_1.p.x - s_2.p.x, 2.0) + pow(s_1.p.y - s_2.p.y, 2.0));
+    sound_dist = abs(s_1.time - s_2.time)*SOUND_SPEED;
+
+    if(sound_dist > sensor_dist)
+        return 0;
+*/
+    return 1;
+}
+
+int calc_intersection(point* line_1, \
+                      point* line_2, \
                       int length, double radius, \
-                      double* res_x, double* res_y, \
+                      point* res, \
                       int num_max_results, int* num_found_results)
 {
     int i,j;
@@ -16,13 +34,13 @@ int calc_intersection(double* line_1_x, double* line_1_y, \
     {
         for(j = 0; j < length; j++)
         {
-            distance = sqrt(pow(*(line_1_x + i) - *(line_2_x + j), 2.0) + \
-                            pow(*(line_1_y + i) - *(line_2_y + j), 2.0));
+            distance = sqrt(pow((line_1 + i)->x - (line_2 + j)->x, 2.0) + \
+                            pow((line_1 + i)->y - (line_2 + j)->y, 2.0));
             if(distance < radius)
             {
                 // ket pont felezopontjat adjuk meg eredmenynek
-                *(res_x + res_num) = (*(line_1_x + i) + *(line_2_x + j))/2;
-                *(res_y + res_num) = (*(line_1_y + i) + *(line_2_y + j))/2;
+                (res + res_num)->x = ((line_1 + i)->x + (line_2 + j)->x)/2;
+                (res + res_num)->y = ((line_1 + i)->y + (line_2 + j)->y)/2;
 
                 res_num ++;
 
@@ -46,9 +64,8 @@ int calc_intersection(double* line_1_x, double* line_1_y, \
 }
 
 
-void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
-                int time_1, int time_2, \
-                double* res_x, double* res_y, int res_length,\
+void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
+                point* res, int res_length,\
                 double step, double gain
                 )
 {
@@ -57,12 +74,12 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
     // ket szenzor tavolsaga
     double distance;
     // felezopont koordinatai
-    double middle_x, middle_y;
+    point middle;
     // forgatas szoge
     double angle;
 
     // forgatasi szoghoz
-    double vec_x, vec_y;
+    point vec;
 
     // amekkora utat a hang megtett ennyi ido alatt
     double sound_distance;
@@ -79,53 +96,50 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
 
     // forgatashoz es eltolashoz
     // pont forgatasa
-    double rot_x_1;
-    double rot_y_1;
+    point rot_1;
 
     // hiperbola masik fele ugyanaz csak y koordinata az inverze
-    double rot_x_2;
-    double rot_y_2;
+    point rot_2;
     // pontok eltolasa
-    double fin_x_1;
-    double fin_y_1;
-    double fin_x_2;
-    double fin_y_2;
+    point fin_1;
+    point fin_2;
 
     // ciklus index
     int index;
 
-    //if(time_1 >= time_2)
-        sound_distance = (time_1 - time_2)*speed;
-    //else
-    //    sound_distance = (time_2 - time_1)*speed;
+    // regiszter tulcsordulasa nem okoz problemat
+    // 1 - UINT_MAX = 2
+    sound_distance = (int)(sensor_1.time - sensor_2.time)*speed;
+
+    //    sound_distance = (sensor_2.time - sensor_1.time)*speed;
     //TODO függnek a dolgok az idokvantumtol (ms, ns)
 
     // a ket szenzor tavolsagat
-    distance = sqrt(pow(pos_1_x - pos_2_x, 2.0) + pow(pos_1_y - pos_2_y, 2.0));
+    distance = sqrt(pow(sensor_1.p.x - sensor_2.p.x, 2.0) + pow(sensor_1.p.y - sensor_2.p.y, 2.0));
 
     // a szenzopar felezopontja (az eltolashoz kell)
-    middle_x = (pos_1_x + pos_2_x)/2;
-    middle_y = (pos_1_y + pos_2_y)/2;
+    middle.x = (sensor_1.p.x + sensor_2.p.x)/2;
+    middle.y = (sensor_1.p.y + sensor_2.p.y)/2;
 
     // hiperbola forgatasa szogenek kiszamitasa
 
-    vec_x = pos_1_x - pos_2_x;
-    vec_y = pos_1_y - pos_2_y;
+    vec.x = sensor_1.p.x - sensor_2.p.x;
+    vec.y = sensor_1.p.y - sensor_2.p.y;
 
-    if((pos_1_x - pos_2_x) == 0)
+    if((sensor_1.p.x - sensor_2.p.x) == 0)
     {
         angle = M_PI/2;
     }
     else
     {
-        angle = atan2(vec_y, vec_x) - atan2(0,1);
+        angle = atan2(vec.y, vec.x) - atan2(0,1);
     }
 
     // hiperbola kiszamitasa
 
     //TODO meddigmenjen a ciklus
 
-    a = (distance + sound_distance)/2;
+    a = (distance + sound_distance)/2.0;
     for(index = 0; index < res_length; ){
 
         // a kozelebbi szenzotrol "a" a tavolsag
@@ -136,10 +150,10 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
         coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));
 
         // kozepponttol a tavolsag
-        s = sqrt(pow(a,2.0) + pow(distance,2.0)/4 - a*distance*coslamd);
+        s = sqrt(pow(a,2.0) + pow(distance,2.0)/4.0 - a*distance*coslamd);
 
         // kozepponttol a szog
-        cosfi = 1/(s*distance)*(pow(s,2.0) + pow(distance,2.0)/4 - pow(a,2));
+        cosfi = 1/(s*distance)*(pow(s,2.0) + pow(distance,2.0)/4.0 - pow(a,2));
         fi = acos(cosfi);
 
         // a pont koordinatai
@@ -147,18 +161,18 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
         // ha cosfi not a number
         if(cosfi != cosfi)
         {
-            x = middle_x + s;
-            y = middle_y + s;
-            *(res_x + index) = x;
-            *(res_y + index) = y;
+            x = middle.x + s;
+            y = middle.y + s;
+            (res + index)->x = x;
+            (res + index)->y = y;
             index++;
 
             // biztonsag kedveert
             if(index >= res_length)
                 break;
 
-            *(res_x + index) = x;
-            *(res_y + index) = -y;
+            (res + index)->x = x;
+            (res + index)->y = -y;
             index++;
 
             a +=0.1;
@@ -168,38 +182,38 @@ void calc_hyper(int pos_1_x, int pos_1_y, int pos_2_x, int pos_2_y, \
         y = s * sin(fi);
         // pont forgatasa
 
-        rot_x_1 = x * cos(angle) - y * sin(angle);
-        rot_y_1 = x * sin(angle) + y * cos(angle);
+        rot_1.x = x * cos(angle) - y * sin(angle);
+        rot_1.y = x * sin(angle) + y * cos(angle);
 
         // hiperbola masik fele ugyanaz csak y koordinata az inverze
-        rot_x_2 = x * cos(angle) + y * sin(angle);
-        rot_y_2 = x * sin(angle) - y * cos(angle);
+        rot_2.x = x * cos(angle) + y * sin(angle);
+        rot_2.y = x * sin(angle) - y * cos(angle);
 
 
         // pontok eltolasa
 
-        fin_x_1 = rot_x_1 + middle_x;
-        fin_y_1 = rot_y_1 + middle_y;
+        fin_1.x = rot_1.x + middle.x;
+        fin_1.y = rot_1.y + middle.y;
 
-        fin_x_2 = rot_x_2 + middle_x;
-        fin_y_2 = rot_y_2 + middle_y;
+        fin_2.x = rot_2.x + middle.x;
+        fin_2.y = rot_2.y + middle.y;
 
-        *(res_x + index) = fin_x_1;
-        *(res_y + index) = fin_y_1;
+        (res + index)->x = fin_1.x;
+        (res + index)->y = fin_1.y;
         index++;
 
         // biztonsag kedveert
         if(index >= res_length)
             break;
 
-        *(res_x + index) = fin_x_2;
-        *(res_y + index) = fin_y_2;
+        (res + index)->x = fin_2.x;
+        (res + index)->y = fin_2.y;
         index++;
 
         // lepeskoz
         a += step;
         step = step * gain;
 
-        }
+    }
 
 }

@@ -85,22 +85,16 @@ int is_valid(int which){
 
 void* worker_fn(void* arg){
 
-  double* res_x_1;
-  double* res_y_1;
-  double* res_x_2;
-  double* res_y_2;
-  double* res_x_3;
-  double* res_y_3;
+  point* res_1;
+  point* res_2;
+  point* res_3;
 
-  double sen_1_x, sen_1_y;
-  double sen_2_x, sen_2_y;
-  double sen_3_x, sen_3_y;
-  double* inter_x;
-  double* inter_y;
+  sensor_point sen_1, sen_2, sen_3;
+  point* inter;
 
   int num_inter;
   int size = 1000;
-  int times[3];
+  unsigned int times[3];
   int t_ready[3] = {0,0,0};
   int index = 0;
   int valid;
@@ -124,73 +118,63 @@ void* worker_fn(void* arg){
       continue;
 
     printf("Start to calculate\n");
+    printf("Times: %u %u %u\n", times[0], times[1], times[2]);
+    res_1 = (point*)malloc(sizeof(point)*size);
+    res_2 = (point*)malloc(sizeof(point)*size);
+    res_3 = (point*)malloc(sizeof(point)*size);
 
-    res_x_1 = (double*)malloc(sizeof(double)*size);
-    res_y_1 = (double*)malloc(sizeof(double)*size);
-    res_x_2 = (double*)malloc(sizeof(double)*size);
-    res_y_2 = (double*)malloc(sizeof(double)*size);
-    res_x_3 = (double*)malloc(sizeof(double)*size);
-    res_y_3 = (double*)malloc(sizeof(double)*size);
+    sen_1.p.x = 0.0;
+    sen_1.p.y = 0.0;
+    sen_2.p.x = 150.0;
+    sen_2.p.y = 0.0;
+    sen_3.p.x = 0.0;
+    sen_3.p.y = 150.0;
 
-    sen_1_x = 0.0;
-    sen_1_y = 0.0;
-    sen_2_x = 150.0;
-    sen_2_y = 0.0;
-    sen_3_x = 0.0;
-    sen_3_y = 150.0;
+    sen_1.time = times[0];
+    sen_2.time = times[1];
+    sen_3.time = times[2];
+/*
+void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
+                point* res, int res_length, \
+                double step, double gain);
+*/
+    calc_hyper(sen_1, sen_2, \
+               res_1, size, 0.05,1.01);
 
-    calc_hyper(sen_1_x,sen_1_y,sen_2_x,sen_2_y,times[0],times[1],\
-               res_x_1,res_y_1, size, 0.05,1.01);
+    calc_hyper(sen_2, sen_3, \
+               res_2, size, 0.05,1.01);
 
-    calc_hyper(sen_2_x,sen_2_y,sen_3_x,sen_3_y,times[1],times[2],\
-               res_x_2,res_y_2, size, 0.05,1.01);
+//    calc_hyper(sen_3, sen_1, \
+//               res_3, size, 0.05,1.01);
 
-    calc_hyper(sen_3_x,sen_3_y,sen_1_x,sen_1_y,times[2],times[0],\
-               res_x_3,res_y_3, size, 0.05,1.01);
-
-    //if(print_points) {
+    inter = (point*)malloc(sizeof(point)*size);
 /*
       printf("Pontok: %d \n", size);
       for(index = 0; index < size; index++){
-        printf("%d --- %d\t%d\t%d\t%d\t%d\t%d\n", index,
-              (int)(*(res_x_1 +index)+0.5), (int)(*(res_y_1 +index)+0.5),
-              (int)(*(res_x_2 +index)+0.5), (int)(*(res_y_2 +index)+0.5),
-              (int)(*(res_x_3 +index)+0.5), (int)(*(res_y_3 +index)+0.5));
+        printf("%d --- %d\t%d\t%d\t%d\n", index, //t%d\t%d\n", index,
+              (int)((res_1 +index)->x+0.5), (int)((res_1 +index)->y+0.5),
+              (int)((res_2 +index)->x+0.5), (int)((res_2 +index)->y+0.5),
+//              (int)((res_3 +index)->x+0.5), (int)((res_3 +index)->y+0.5),
+              );
       }
 */
-    //}
-
-    inter_x = (double*)malloc(sizeof(double)*size);
-    inter_y = (double*)malloc(sizeof(double)*size);
-
     cross_threshold = 0.01;
     while(1) {
       cross_threshold = cross_threshold + 0.01;
-      calc_intersection(res_x_1, res_y_1, \
-                        res_x_2, res_y_2, \
+      calc_intersection(res_1, \
+                        res_2, \
                         size, cross_threshold, \
-                        inter_x, inter_y, \
+                        inter, \
                         size, &num_inter);
       printf("%d point find, thres: %f \n", num_inter, cross_threshold);
 
       if(num_inter == 0)
         continue;
-
-      calc_intersection(res_x_2, res_y_2, \
-                        res_x_3, res_y_3, \
+/*
+      calc_intersection(res_2, \
+                        res_3, \
                         size, cross_threshold, \
-                        inter_x, inter_y, \
-                        size, &num_inter);
-
-      printf("%d point find, thres: %f \n", num_inter, cross_threshold);
-
-      if(num_inter == 0)
-        continue;
-
-      calc_intersection(res_x_1, res_y_1, \
-                        res_x_3, res_y_3, \
-                        size, cross_threshold, \
-                        inter_x, inter_y, \
+                        inter, \
                         size, &num_inter);
 
       printf("%d point find, thres: %f \n", num_inter, cross_threshold);
@@ -198,12 +182,23 @@ void* worker_fn(void* arg){
       if(num_inter == 0)
         continue;
 
+      calc_intersection(res_1, \
+                        res_3, \
+                        size, cross_threshold, \
+                        inter, \
+                        size, &num_inter);
+
+      printf("%d point find, thres: %f \n", num_inter, cross_threshold);
+
+      if(num_inter == 0)
+        continue;
+*/
       break;
     }
 
     printf("Metszespontok: %d \n", num_inter);
     for(index = 0; index < num_inter; index++){
-      printf(" %d %d \n", (int)(*(inter_x +index)+0.5), (int)(*(inter_y +index)+0.5));
+      printf(" %d %d \n", (int)((inter +index)->x+0.5), (int)((inter +index)->y+0.5));
     }
 
     t_ready[0] = 0;
@@ -211,14 +206,10 @@ void* worker_fn(void* arg){
     t_ready[2] = 0;
   }
 
-  free(res_x_1);
-  free(res_y_1);
-  free(res_x_2);
-  free(res_y_2);
-  free(res_x_3);
-  free(res_y_3);
-  free(inter_x);
-  free(inter_y);
+  free(res_1);
+  free(res_2);
+  free(res_3);
+  free(inter);
 }
 
 int main(int argc, char* argv[]){
@@ -234,8 +225,8 @@ int main(int argc, char* argv[]){
   fd_set watchset;
   fd_set inset;
 
-  if(argc < 5){
-    printf("%s \nUsage: <mic 1 register path> <mic 2 register path> <mic 3 register path> <print points (y/n)>\n", argv[0]);
+  if(argc < 4){
+    printf("%s \nUsage: <mic 1 register path> <mic 2 register path> <mic 3 register path>\n", argv[0]);
     return 0;
   }
   printf("Start\n");
@@ -250,9 +241,6 @@ int main(int argc, char* argv[]){
     fprintf(stderr,"Hiba a szal letrehozasaban.\n");
     exit(EXIT_FAILURE);
   }
-
-  //if(*argv[5] == 'y')
-    //print_points = 1;
 
   for(index = 0; index < 3 ; index++){
     printf("Opening mic %d: %s\n",index,argv[index+1]);
