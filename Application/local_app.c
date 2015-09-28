@@ -289,8 +289,7 @@ int main(int argc, char* argv[]){
           return EXIT_FAILURE;
         }
         memcpy(&times[index], buf, sizeof(times[0]));
-        printf("Read value mic %d reg: %x\n",index + 1, times[index]);
-        sleep(1);
+        printf("Read value mic %d reg: hex %x dec %u\n",index + 1, times[index], times[index]);
 
         add_time(index, times[index]);
 

@@ -3,6 +3,22 @@
 // remove
 #include <stdio.h>
 
+int is_timestamps_correct(double pos_1_x, double pos_1_y, \
+                          double pos_2_x, double pos_2_y, \
+                          unsigned int time_1, unsigned int time_2)
+{
+    int sound_dist;
+    int sensor_dist;
+
+    sensor_dist = distance = sqrt(pow(pos_1_x - pos_2_x, 2.0) + pow(pos_1_y - pos_2_y, 2.0));
+    sound_dist = abs(time_1 - time_2)*SOUND_SPEED;
+
+    if(sound_dist > sensor_dist)
+        return 0;
+
+    return 1;
+}
+
 int calc_intersection(double* line_1_x, double* line_1_y, \
                       double* line_2_x, double* line_2_y, \
                       int length, double radius, \
@@ -96,6 +112,8 @@ void calc_hyper(double pos_1_x, double pos_1_y, double pos_2_x, double pos_2_y, 
     // ciklus index
     int index;
 
+    // regiszter tulcsordulasa nem okoz problemat
+    // 1 - UINT_MAX = 2
     sound_distance = (int)(time_1 - time_2)*speed;
 
     //    sound_distance = (time_2 - time_1)*speed;
@@ -201,6 +219,6 @@ void calc_hyper(double pos_1_x, double pos_1_y, double pos_2_x, double pos_2_y, 
         a += step;
         step = step * gain;
 
-        }
+    }
 
 }
