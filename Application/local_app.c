@@ -133,17 +133,14 @@ void* worker_fn(void* arg){
     sen_1.time = times[0];
     sen_2.time = times[1];
     sen_3.time = times[2];
-/*
-void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
-                point* res, int res_length, \
-                double step, double gain);
-*/
+
     calc_hyper(sen_1, sen_2, \
                res_1, size, 0.05,1.01);
 
     calc_hyper(sen_2, sen_3, \
                res_2, size, 0.05,1.01);
 
+// eleg ket hiperbolat kiszamitani
 //    calc_hyper(sen_3, sen_1, \
 //               res_3, size, 0.05,1.01);
 
@@ -170,6 +167,7 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
 
       if(num_inter == 0)
         continue;
+// eles ket hiperbola metszespontjat keresni
 /*
       calc_intersection(res_2, \
                         res_3, \

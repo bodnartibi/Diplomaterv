@@ -172,10 +172,10 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
                 break;
 
             (res + index)->x = x;
-            (res + index)->y = -y;
+            (res + index)->y = y;
             index++;
 
-            a +=0.1;
+            a +=step;
             continue;
         }
         x = s * cosfi;
