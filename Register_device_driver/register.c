@@ -268,6 +268,12 @@ static int myregister_probe(struct platform_device *pdev)
   regs_class = class_create(THIS_MODULE, CLASS_NAME);
   //TODO hibakezeles
 
+  // Workqueue létrehozás
+  workQ = create_workqueue("FPGA_registers_workqueue");
+  if(!workQ) {
+    printk(KERN_ERR "create_workqueue return with 0");
+  }
+
   for (index = 0; index < 3 ; index++) {
 
     err = device_create(regs_class, NULL, MKDEV(registers_major, index), NULL, file_names[index]);
@@ -299,21 +305,14 @@ static int myregister_probe(struct platform_device *pdev)
     IRQ[index] = platform_get_irq(pdev,index);
     printk(KERN_INFO "IRQ%d: %x\n", index, IRQ[index]);
 
+    INIT_WORK(&task[index], work_fn);
+
     result = request_irq(IRQ[index], myregister_irq_handler, 0, irq_names[index], pdev);
     if (result < 0) {
       printk(KERN_ERR "cannot request IRQ %d: %d\n", index, result);
       goto fail_irq;
     }
   }
-
-  // Workqueue létrehozás
-  workQ = create_workqueue("FPGA_registers_workqueue");
-  if(!workQ) {
-    printk(KERN_ERR "create_workqueue return with 0");
-  }
-  INIT_WORK(&task[0], work_fn);
-  INIT_WORK(&task[1], work_fn);
-  INIT_WORK(&task[2], work_fn);
 
   printk(KERN_INFO "Inserting myreg module succes\n");
   return 0;
