@@ -3,7 +3,7 @@
 
 // 331.5 + 0.6*T  m/s
 //#define SOUND_SPEED 34300  // mm/ms
-#define SOUND_SPEED 3.430
+#define SOUND_SPEED 3.430 //
 // 50 MHz counter -> 20 ns
 #define TIME_QUANTUM 0.0002 // ms
 // position must be in mm
@@ -22,7 +22,8 @@ typedef struct sensor_point_ {
 
 
 int is_timestamps_correct(sensor_point s_1, \
-                          sensor_point s_2);
+                          sensor_point s_2, \
+                          sensor_point s_3);
 
 void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
                 point* res, int res_length, \

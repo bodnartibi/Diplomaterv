@@ -117,12 +117,6 @@ void* worker_fn(void* arg){
     if(!(t_ready[0] && t_ready[1] && t_ready[2]))
       continue;
 
-    printf("Start to calculate\n");
-    printf("Times: %u %u %u\n", times[0], times[1], times[2]);
-    res_1 = (point*)malloc(sizeof(point)*size);
-    res_2 = (point*)malloc(sizeof(point)*size);
-    res_3 = (point*)malloc(sizeof(point)*size);
-
     sen_1.p.x = 0.0;
     sen_1.p.y = 0.0;
     sen_2.p.x = 150.0;
@@ -133,6 +127,21 @@ void* worker_fn(void* arg){
     sen_1.time = times[0];
     sen_2.time = times[1];
     sen_3.time = times[2];
+
+    if( !is_timestamps_correct(sen_1, sen_2, sen_3))
+    {
+        printf("Bad datas, dropping timestamps\n");
+        t_ready[0] = 0;
+        t_ready[1] = 0;
+        t_ready[2] = 0;
+        continue;
+    }
+
+    printf("Start to calculate\n");
+    printf("Times: %u %u %u\n", times[0], times[1], times[2]);
+    res_1 = (point*)malloc(sizeof(point)*size);
+    res_2 = (point*)malloc(sizeof(point)*size);
+    res_3 = (point*)malloc(sizeof(point)*size);
 
     calc_hyper(sen_1, sen_2, \
                res_1, size, 0.05,1.01);
