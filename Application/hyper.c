@@ -19,8 +19,8 @@ double high_of_triangle(double a, double b, double c)
 {
     double alfa;
     double cosalfa;
-    // cosG = (c2-a2-b2)/2ab
-    cosalfa = (pow(a,2.0)-pow(b,2.0)-pow(c,2.0))/(2*c*b);
+    // cosG = (-c2+a2+b2)/2ab
+    cosalfa = (-pow(a,2.0)+pow(b,2.0)+pow(c,2.0))/(2*c*b);
     alfa = acos(cosalfa);
     return b*sin(alfa);
 }
