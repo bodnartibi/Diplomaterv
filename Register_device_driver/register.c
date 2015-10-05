@@ -185,10 +185,7 @@ static int myregister_remove(struct platform_device *pdev)
 {
   int index;
 
-  device_destroy(regs_class, MKDEV(registers_major, 0));
-  device_destroy(regs_class, MKDEV(registers_major, 1));
-  device_destroy(regs_class, MKDEV(registers_major, 2));
-  class_unregister(regs_class);
+  //class_unregister(regs_class);
   class_destroy(regs_class);
   /* Freeing the major number */
   unregister_chrdev(registers_major, "my_FPGA_registers_device");
@@ -199,6 +196,7 @@ static int myregister_remove(struct platform_device *pdev)
   }
 
   for (index = 0; index < 3; index++) {
+    device_destroy(regs_class, MKDEV(registers_major, index));
     iounmap(registers_addr[index]);
     release_mem_region(resource_mem[index]->start, remap_size[index]);
     free_irq(IRQ[index], pdev);
@@ -242,7 +240,7 @@ static int myregister_probe(struct platform_device *pdev)
 {
   int result;
   struct device* err;
-  int index;
+  int index, index2;
 
   printk(KERN_INFO "Probe start\n");
 
@@ -251,7 +249,7 @@ static int myregister_probe(struct platform_device *pdev)
   result = register_chrdev(0, "my_FPGA_registers_device", &reg_fops);
   if (result < 0) {
     printk(KERN_ERR "cannot register chrdev: %d\n", result);
-    goto fail_reg;
+    goto fail_register_chrdev;
   }
 
   registers_major = result;
@@ -260,24 +258,35 @@ static int myregister_probe(struct platform_device *pdev)
   input_buffer = kmalloc(BUFF_SIZE, GFP_KERNEL);
   if (!input_buffer) {
     result = -ENOMEM;
+    printk(KERN_ERR "cannot allocate buffer memory\n");
     goto fail_mem;
   }
   memset(input_buffer, 0, BUFF_SIZE);
 
   /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
   regs_class = class_create(THIS_MODULE, CLASS_NAME);
-  //TODO hibakezeles
+  if(!regs_class) {
+    printk(KERN_ERR "cannot create class\n");
+    goto fail_class_create;
+  }
 
+  // TODO class_register kell? es a hibaaga
+  
   // Workqueue létrehozás
   workQ = create_workqueue("FPGA_registers_workqueue");
   if(!workQ) {
     printk(KERN_ERR "create_workqueue return with 0");
+    goto fail_create_workqueue;
   }
 
   for (index = 0; index < 3 ; index++) {
 
+    // TODO: itt kell valamire a pointer?
     err = device_create(regs_class, NULL, MKDEV(registers_major, index), NULL, file_names[index]);
-
+    if(!err){
+      printk(KERN_ERR "cannot create device index %d\n",index);
+      goto fail_device_create;
+    }
     // lekerdezzuk a periferiahoz tartozo informaciokat
     // masodik parameter az ioport.h-ban talalhato
     resource_mem[index] = platform_get_resource(pdev, IORESOURCE_MEM, index);
@@ -287,18 +296,15 @@ static int myregister_probe(struct platform_device *pdev)
     remap_size[index] = resource_mem[index]->end - resource_mem[index]->start + 1;
 
     if (NULL == request_mem_region(resource_mem[index]->start, remap_size[index], mem_region_names[index])) {
-      printk(KERN_ERR "request mem region\n");
-      //TODO hibakezelés mert ez nem elég itt
-      // ezt jo helye void release_mem_region(unsigned long start, unsigned long len);
-      goto fail_req;
+      printk(KERN_ERR "request mem region index %d\n",index);
+      goto fail_request_mem;
     }
 
     registers_addr[index] = ioremap(resource_mem[index]->start, remap_size[index]);
     printk(KERN_INFO "Remap address: %x\n",(unsigned int)registers_addr[index]);
 
     if(!registers_addr[index]) {
-      printk(KERN_ERR "ERROR ioremap\n");
-      //TODO rendes hibakezelés
+      printk(KERN_ERR "ioremap index %d\n",index);
       goto fail_map;
     }
 
@@ -317,19 +323,37 @@ static int myregister_probe(struct platform_device *pdev)
   printk(KERN_INFO "Inserting myreg module succes\n");
   return 0;
 
-  fail_map:
-  release_mem_region(resource_mem[0]->start, remap_size[0]);
-  release_mem_region(resource_mem[1]->start, remap_size[1]);
-  release_mem_region(resource_mem[2]->start, remap_size[2]);
-  fail_req:
-  free_irq(IRQ[0],pdev);
-  free_irq(IRQ[1],pdev);
-  free_irq(IRQ[2],pdev);
   fail_irq:
+  for(index2 = 0; index2 < index; index2++){
+    free_irq(IRQ[index2],pdev);
+  }
+  index = 3;
+  
+  fail_map:
+  for(index2 = 0; index2 < index; index2++){
+  iounmap(registers_addr[index2]);
+  }
+  index = 3;
+  
+  fail_request_mem:
+  for(index2 = 0; index2 < index; index2++){
+  release_mem_region(resource_mem[index2]->start, remap_size[index2]);
+  }
+  index = 3;
+  
+  fail_device_create:
+  for(index2 = 0; index2 < index; index2++){
+  device_destroy(regs_class, MKDEV(registers_major, index2));
+  }
+  index = 3;
+  
+  fail_create_workqueue:
+  class_destroy(regs_class);
+  fail_class_create:
   kfree(input_buffer);
   fail_mem:
   unregister_chrdev(registers_major, "my_FPGA_registers_device");
-  fail_reg:
+  fail_register_chrdev:
   return result;
 
 }
