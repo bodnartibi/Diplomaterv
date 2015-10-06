@@ -184,24 +184,31 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 static int myregister_remove(struct platform_device *pdev)
 {
   int index;
-
-  //class_unregister(regs_class);
-  class_destroy(regs_class);
-  /* Freeing the major number */
-  unregister_chrdev(registers_major, "my_FPGA_registers_device");
-
-  /* Freeing buffer memory */
-  if (input_buffer) {
-    kfree(input_buffer);
-  }
-
+  printk(KERN_INFO "Removing: ");
   for (index = 0; index < 3; index++) {
+    printk(KERN_INFO "device destroy index %d, ", index);
     device_destroy(regs_class, MKDEV(registers_major, index));
+    printk(KERN_INFO "iounmap index %d, ", index);
     iounmap(registers_addr[index]);
+    printk(KERN_INFO "release mem region index %d, ", index);
     release_mem_region(resource_mem[index]->start, remap_size[index]);
     free_irq(IRQ[index], pdev);
   }
 
+  //class_unregister(regs_class);
+  printk(KERN_INFO "\nclass destroy, ");
+  class_destroy(regs_class);
+  /* Freeing the major number */
+  printk(KERN_INFO "unregister chrdev, ");
+  unregister_chrdev(registers_major, "my_FPGA_registers_device");
+
+  /* Freeing buffer memory */
+  printk(KERN_INFO "free buffer, ");
+  if (input_buffer) {
+    kfree(input_buffer);
+  }
+
+  printk(KERN_INFO "destroy workqueue\n");
   destroy_workqueue(workQ);
   printk(KERN_INFO "Removing myreg modul\n");
 
