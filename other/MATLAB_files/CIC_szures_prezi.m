@@ -3,16 +3,13 @@ D = 20;
 size_input = 10000;
 FFT_FOK = 100000; %44200;
 
-
 time=[0:1:size_input-1];
 %signal = (square(time/500)); %+ 0.5 * rand(1, length(time));
 %signal = sawtooth(time/250,1);
 
-%[signal,fs] = wavread('csett.wav');
 s= load('PDM_sin.mat');
 signal = s.ans;
 signal = transpose(signal(2,:));
-
 spek_signal=abs(fft(signal,FFT_FOK));
 spek_y=[0:1:FFT_FOK-1];
 out_t = [0:1:size(signal(:,1))-1];
@@ -44,7 +41,7 @@ figure(2)
 plot(spek_y,spek_signal*15,'b');
 hold on
 plot(spek_y,spek_out,'r');
-plot(spek_y,frek_resp,'g');
+plot(spek_y,frek_resp*15,'g');
 hold off
 
 
