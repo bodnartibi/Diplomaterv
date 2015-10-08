@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.6"
+    ComputedModelVersion    "1.7"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -25,9 +25,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "Tibor"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Aug 04 00:28:04 2015"
-  RTWModifiedTimeStamp	  360545527
-  ModelVersionFormat	  "1.%<AutoIncrement:6>"
+  LastModifiedDate	  "Thu Oct 08 23:35:00 2015"
+  RTWModifiedTimeStamp	  366247922
+  ModelVersionFormat	  "1.%<AutoIncrement:7>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -701,6 +701,13 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      ToFile
+      Filename		      "untitled.mat"
+      MatrixName	      "ans"
+      Decimation	      "1"
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      ZeroOrderHold
       SampleTime	      "1"
     }
@@ -721,7 +728,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "195"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    33
+    SIDHighWatermark	    34
     Block {
       BlockType		      Integrator
       Name		      "Integrator"
@@ -796,6 +803,13 @@ Model {
       SaturateOnIntegerOverflow	off
     }
     Block {
+      BlockType		      ToFile
+      Name		      "To File"
+      SID		      34
+      Position		      [490, 205, 550, 235]
+      Filename		      "PDM_sin.mat"
+    }
+    Block {
       BlockType		      ZeroOrderHold
       Name		      "Zero-Order\nHold"
       SID		      7
@@ -840,9 +854,16 @@ Model {
 	DstPort			5
       }
       Branch {
-	Points			[5, 0; 0, 60; -220, 0]
-	DstBlock		"Sum"
-	DstPort			2
+	Points			[5, 0; 0, 10]
+	Branch {
+	  Points		  [0, 50; -220, 0]
+	  DstBlock		  "Sum"
+	  DstPort		  2
+	}
+	Branch {
+	  DstBlock		  "To File"
+	  DstPort		  1
+	}
       }
     }
     Line {
