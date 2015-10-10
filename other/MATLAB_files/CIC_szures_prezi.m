@@ -1,9 +1,8 @@
-clear;
-D = 20;
-size_input = 10000;
+D = 50;
+%size_input = 10000;
 FFT_FOK = 100000; %44200;
 
-time=[0:1:size_input-1];
+%time=[0:1:size_input-1];
 %signal = (square(time/500)); %+ 0.5 * rand(1, length(time));
 %signal = sawtooth(time/250,1);
 
@@ -33,7 +32,7 @@ figure(1)
 %osztas a latvany miatt
 plot(out_t,out,'r');
 hold on
-plot(out_t,signal,'b');
+%plot(out_t,signal,'b');
 hold off
 %%
 figure(2)

@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.8"
+    ComputedModelVersion    "1.9"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -25,9 +25,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "Tibor"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Oct 09 00:11:38 2015"
-  RTWModifiedTimeStamp	  366249441
-  ModelVersionFormat	  "1.%<AutoIncrement:8>"
+  LastModifiedDate	  "Sat Oct 10 14:45:47 2015"
+  RTWModifiedTimeStamp	  366389127
+  ModelVersionFormat	  "1.%<AutoIncrement:9>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -110,7 +110,7 @@ Model {
 	  $ObjectID		  2
 	  Version		  "1.6.0"
 	  StartTime		  "0.0"
-	  StopTime		  "1000.0"
+	  StopTime		  "10000.0"
 	  AbsTol		  "auto"
 	  FixedStep		  "auto"
 	  InitialStep		  "auto"
@@ -760,7 +760,7 @@ Model {
       Ports		      [5]
       Position		      [495, 135, 520, 185]
       Floating		      off
-      Location		      [186, 114, 1026, 833]
+      Location		      [186, 43, 1026, 762]
       Open		      on
       NumInputPorts	      "5"
       ZoomMode		      "xonly"
