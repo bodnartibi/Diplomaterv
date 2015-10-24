@@ -22,7 +22,7 @@ module CIC(
 	input clk,             // clock
 	input rst,             // reset
 	input din,             // data
-	input [7:0] comb_num,  // comb's rate
+	input [2:0] comb_num,  // comb's rate
 	input [15:0] dec_num,  // decimator's rate
 	output reg [31:0] out, // CIC output
 	output reg out_rdy     // output valid
@@ -65,14 +65,14 @@ begin
 		end
 		//selecting based on comb's rate
 		case (comb_num)
-		8'd0 : out <= integ - comb[0];
-		8'd1 : out <= integ - comb[1];
-		8'd2 : out <= integ - comb[2];
-		8'd3 : out <= integ - comb[3];
-		8'd4 : out <= integ - comb[4];
-		8'd5 : out <= integ - comb[5];
-		8'd6 : out <= integ - comb[6];
-		8'd7 : out <= integ - comb[7];
+		3'd0 : out <= integ - comb[0];
+		3'd1 : out <= integ - comb[1];
+		3'd2 : out <= integ - comb[2];
+		3'd3 : out <= integ - comb[3];
+		3'd4 : out <= integ - comb[4];
+		3'd5 : out <= integ - comb[5];
+		3'd6 : out <= integ - comb[6];
+		3'd7 : out <= integ - comb[7];
 		endcase
 
 		out_rdy <= 1'b1;

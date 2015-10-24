@@ -29,8 +29,7 @@ module CIC_imp_test;
 	reg rst;
 	reg din;
 	reg [15:0] rate;
-	reg rate_we;
-	reg [7:0] comb_num;
+	reg [2:0] comb_num;
 
 	// Outputs
 	wire [31:0] out;
@@ -53,7 +52,7 @@ module CIC_imp_test;
 		din = 0;
 		rate = 15'd3;
 		//rate = 0;
-		comb_num = 8'd4;
+		comb_num = 3'd4;
 
 		#2;
 		
