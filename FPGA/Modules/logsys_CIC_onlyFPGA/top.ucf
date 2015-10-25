@@ -1,0 +1,43 @@
+# LOGSYS XC6SLX9-2TQG144C Demo Board FPGA lábkiosztás v1.0
+# A fájl az összes jelet tartalmazza, a kivezetés specifikációkat
+# inaktív, megjegyzés állapotban tartva.
+# Egy adott projektben csak a ténylegesen használt jeleket aktiváljuk,
+# elkerülendõ az ERROR és WARNING üzeneteket.
+# A VccAUX tápfeszültség 3,3 V.
+CONFIG VCCAUX=3.3;
+# 50 MHz órajelgenerátor
+NET clk LOC=P55 | IOSTANDARD=LVCMOS33 | TNM_NET=tnm_clk50M;
+#TIMESPEC TS_clk50M = PERIOD tnm_clk50M 50000 kHz;
+
+# Manuális RST nyomógomb (aktív alacsony)
+NET rstn_in LOC=P67 | IOSTANDARD=LVCMOS33 | PULLUP | TIG;
+
+# A CPLD interfész vonalai. A cpld_jtagen jelet
+# mindig logikai alacsony szinttel hajtsuk meg!
+NET cpld_jtagen LOC=P82 | IOSTANDARD=LVCMOS33;
+NET cpld_rstn LOC=P74 | IOSTANDARD=LVCMOS33;
+NET cpld_clk LOC=P78 | IOSTANDARD=LVCMOS33;
+NET cpld_load LOC=P80 | IOSTANDARD=LVCMOS33;
+NET cpld_mosi LOC=P81 | IOSTANDARD=LVCMOS33;
+NET cpld_miso LOC=P79 | IOSTANDARD=LVCMOS33;
+
+# LOGSYS "A" bõvítõcsatlakozó (szembõl nézve a 20 pólusú
+# csatlakozó nem használható pontjait x-el jelölve).
+# --------------------------------------------------------
+# | x |aio15|aio13|aio11|aio9 |aio7 |aio5 | 3V3 |GND | x |
+# --------------------------------------------------------
+# | x |aio16|aio14|aio12|aio10|aio8 |aio6 |aio4 | 5V | x |
+# --------------------------------------------------------
+#NET aio<16> LOC=P126 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 6N
+NET mic_channel LOC=P127 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 6P
+#NET aio<14> LOC=P131 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 5N
+NET mic_clk_out LOC=P132 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 5P
+#NET aio<12> LOC=P133 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 4N
+NET mic_data_in LOC=P134 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 4P
+#NET aio<10> LOC=P137 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 3N
+#NET aio<9> LOC=P138 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 3P
+#NET aio<8> LOC=P139 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 2N
+#NET aio<7> LOC=P140 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 2P
+#NET aio<6> LOC=P141 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 1N
+#NET aio<5> LOC=P142 | PULLUP | IOSTANDARD=LVCMOS33; # Diff. 1P
+#NET aio<4> LOC=P143 | PULLUP | IOSTANDARD=LVCMOS33; 
