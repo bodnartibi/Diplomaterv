@@ -2,10 +2,11 @@
 #define HYPER_H
 
 // 331.5 + 0.6*T  m/s
-//#define SOUND_SPEED 34300  // mm/ms
-#define SOUND_SPEED 3.430 //
+// 343.00 mm/ms
+// 0.3430 mm/us
 // 50 MHz counter -> 20 ns
-#define TIME_QUANTUM 0.0002 // ms
+#define SOUND_SPEED 0.00686 // mm/20ns
+//#define TIME_QUANTUM 0.02 // us
 // position must be in mm
 
 #include <math.h>

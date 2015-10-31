@@ -8,6 +8,7 @@
 
 #include <hyper.h>
 
+#define PRINT_RATIO 1
 
 class DrawWidget : public QWidget
 {

@@ -72,12 +72,18 @@ DECLARE_WAIT_QUEUE_HEAD(wq2);
 
 static void work_fn(struct work_struct* work) {
   printk(KERN_INFO "work_fn: called\n");
-  if (reg_ready[0])
+  if (reg_ready[0]) {
+    printk(KERN_INFO "Reg 0 new value: %x\n",reg[0]);
     wake_up(&wq0);
-  if (reg_ready[1])
+  }
+  if (reg_ready[1]) {
+    printk(KERN_INFO "Reg 1 new value: %x\n",reg[1]);
     wake_up(&wq1);
-  if (reg_ready[2])
+  }
+  if (reg_ready[2]) {
+    printk(KERN_INFO "Reg 2 new value: %x\n",reg[2]);
     wake_up(&wq2);
+  }
 }
 
 unsigned int reg_poll(struct file *filep, poll_table *wait )
@@ -218,7 +224,6 @@ static int myregister_remove(struct platform_device *pdev)
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
   int reg_index;
-  printk(KERN_ERR "interrupt: called irq %d\n", irq);
   if (irq == IRQ[0]) {
     reg_index = 0;
   }
@@ -233,12 +238,8 @@ static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
     return IRQ_NONE;
   }
   queue_work(workQ, &task[reg_index]);
-  printk(KERN_INFO "interrupt %d: insert task into queue\n", irq);
-
   reg[reg_index] = ioread32(registers_addr[reg_index]);
-  printk(KERN_INFO "interrupt %d: read %x index %d address %x\n", irq, reg[reg_index], reg_index, (unsigned int)registers_addr[reg_index]);
   reg_ready[reg_index] = 1;
-
   return IRQ_HANDLED;
 }
 
