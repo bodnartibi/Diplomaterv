@@ -89,33 +89,28 @@ static void work_fn(struct work_struct* work) {
 unsigned int reg_poll(struct file *filep, poll_table *wait )
 {
   unsigned int mask = 0;
-  printk(KERN_INFO "poll: called\n");
   switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
     case 0:
       poll_wait( filep, &wq0, wait );
       if (reg_ready[0]) {
-        printk(KERN_INFO "poll 0: ready\n");
         mask |= ( POLLIN | POLLRDNORM );
       }
       break;
     case 1:
       poll_wait( filep, &wq1, wait );
       if (reg_ready[1]) {
-        printk(KERN_INFO "poll 1: ready\n");
         mask |= ( POLLIN | POLLRDNORM );
       }
       break;
     case 2:
       poll_wait( filep, &wq2, wait );
       if (reg_ready[2]) {
-        printk(KERN_INFO "poll 2: ready\n");
         mask |= ( POLLIN | POLLRDNORM );
       }
       break;
     default:
       return -EINVAL;
   }
-  printk(KERN_INFO "poll: end\n");
   return mask;
 }
 
@@ -151,7 +146,7 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
   // minor 3: mic 2
   reg_value = reg[minor];
 
-  printk(KERN_INFO "read from address %x: %x\n", (unsigned int)registers_addr[minor], reg_value);
+  //printk(KERN_INFO "read from address %x: %x\n", (unsigned int)registers_addr[minor], reg_value);
   copy_to_user(buf, &reg_value, sizeof(reg_value));
 
   reg_ready[minor] = 0;
@@ -180,7 +175,7 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
   copy_from_user(input_buffer, buf, c);
   value = *(u32*)buf;
-  printk(KERN_INFO "write: try to write into reg %x: %x\n", *(unsigned int*)registers_addr[minor], value);
+  //printk(KERN_INFO "write: try to write into reg %x: %x\n", *(unsigned int*)registers_addr[minor], value);
 
   iowrite32(value, registers_addr[minor]);
 

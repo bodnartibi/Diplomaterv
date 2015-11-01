@@ -20,6 +20,8 @@ pthread_mutex_t mutex_common;
 pthread_cond_t cond_common;
 pthread_t worker_thread;
 
+sensor_point sen_1, sen_2, sen_3;
+
 typedef struct time_elem_t {
   struct time_elem_t* next;
   struct time_elem_t* prev;
@@ -89,7 +91,6 @@ void* worker_fn(void* arg){
   point* res_2;
   point* res_3;
 
-  sensor_point sen_1, sen_2, sen_3;
   point* inter;
 
   int num_inter;
@@ -116,13 +117,6 @@ void* worker_fn(void* arg){
 
     if(!(t_ready[0] && t_ready[1] && t_ready[2]))
       continue;
-
-    sen_1.p.x = 0.0;
-    sen_1.p.y = 0.0;
-    sen_2.p.x = 150.0;
-    sen_2.p.y = 0.0;
-    sen_3.p.x = 0.0;
-    sen_3.p.y = 150.0;
 
     sen_1.time = times[0];
     sen_2.time = times[1];
@@ -232,11 +226,24 @@ int main(int argc, char* argv[]){
   fd_set watchset;
   fd_set inset;
 
-  if(argc < 4){
-    printf("%s \nUsage: <mic 1 register path> <mic 2 register path> <mic 3 register path>\n", argv[0]);
+  if(argc < 10){
+    printf("%s \nUsage: \n<mic 1 register path> <mic 2 register path> <mic 3 register path>\n", argv[0]);
+    printf("<mic 1 X> <mic 1 Y> <mic 2 X> <mic 2 Y> <mic 3 X> <mic 3 Y>\n");
     return 0;
   }
   printf("Start\n");
+
+  sen_1.p.x = atof (argv[4]);
+  sen_1.p.y = atof (argv[5]);
+  sen_2.p.x = atof (argv[6]);
+  sen_2.p.y = atof (argv[7]);
+  sen_3.p.x = atof (argv[8]);
+  sen_3.p.y = atof (argv[9]);
+
+  printf("Coordinates in order:\n%f %f\n%f %f\n%f %f\n", \
+          sen_1.p.x, sen_1.p.y, \
+          sen_2.p.x, sen_2.p.y, \
+          sen_3.p.x, sen_3.p.y);
 
   pthread_mutex_init(&mutex[0], NULL);
   pthread_mutex_init(&mutex[1], NULL);
