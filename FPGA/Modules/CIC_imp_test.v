@@ -26,12 +26,10 @@ module CIC_imp_test;
 
 	// Inputs
 	reg clk;
-	reg clk_en;
 	reg rst;
-	reg new_data;
 	reg din;
 	reg [15:0] rate;
-	reg rate_we;
+	reg [2:0] comb_num;
 
 	// Outputs
 	wire [31:0] out;
@@ -39,26 +37,22 @@ module CIC_imp_test;
 	// Instantiate the Unit Under Test (UUT)
 	CIC uut (
 		.clk(clk), 
-		.clk_en(clk_en), 
 		.rst(rst), 
-		.new_data(new_data), 
-		.din(din), 
-		.rate(rate), 
-		.rate_we(rate_we),
+		.din(din),
+		.comb_num(comb_num),
+		.dec_num(rate), 
 		.out(out),
 		.out_rdy(out_rdy)
 	);
-
+	
 	initial begin
 		// Initialize Inputs
 		clk = 0;
-		clk_en = 0;
 		rst = 0;
-		new_data = 0;
 		din = 0;
-		rate = 15'd2;
+		rate = 15'd3;
 		//rate = 0;
-		rate_we = 0;
+		comb_num = 3'd4;
 
 		#2;
 		
@@ -68,10 +62,6 @@ module CIC_imp_test;
 		rst = 0;
 		#2;
 		
-		#2;
-		rate_we = 1;
-		#2;
-		rate_we = 0;
 		#2;
 		din = 1;
 		#2;
@@ -84,6 +74,7 @@ module CIC_imp_test;
 	end
 	
 	always #1 clk = ~clk;
+	//always #10 din = ~din;
       
 endmodule
 
