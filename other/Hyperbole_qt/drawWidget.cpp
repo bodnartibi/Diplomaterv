@@ -107,7 +107,7 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
     points.clear();
 
     calc_hyper(sen_1, sen_2,\
-               res_1, size, 0.05,1.01);
+               res_1, size, 0.5,1.005);
 
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)((res_1+i)->x+0.5),(int)((res_1+i)->y+0.5));
@@ -115,14 +115,14 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
     }
 
     calc_hyper(sen_2, sen_3,\
-               res_2, size, 0.05,1.01);
+               res_2, size, 0.5,1.005);
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)((res_2+i)->x+0.5),(int)((res_2+i)->y+0.5));
         points.append(*p);
     }
 
     calc_hyper(sen_3, sen_1,\
-               res_3, size, 0.05,1.01);
+               res_3, size, 0.5,1.005);
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)((res_3+i)->x+0.5),(int)((res_3+i)->y+0.5));
         points.append(*p);

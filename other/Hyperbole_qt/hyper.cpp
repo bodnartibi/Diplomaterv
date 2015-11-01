@@ -148,6 +148,7 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
 
         // coszinusztetellel a kozelebbinel levo szog
         coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));
+        //coslamd = (1/(2*a*distance)) * (-pow(a,2.0) - pow(distance,2.0) + pow(b,2.0));
 
         // kozepponttol a tavolsag
         s = sqrt(pow(a,2.0) + pow(distance,2.0)/4.0 - a*distance*coslamd);
@@ -175,7 +176,7 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
             (res + index)->y = y;
             index++;
 
-            a +=step;
+            a = a*gain;
             continue;
         }
         x = s * cosfi;
