@@ -1,3 +1,6 @@
 *~
 *.o
 other/MATLAB_files/CIC.asv
+*.mat
+other/MATLAB_files/csett.wav
+*.asv

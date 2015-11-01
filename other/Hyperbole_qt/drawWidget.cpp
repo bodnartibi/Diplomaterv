@@ -47,7 +47,7 @@ void DrawWidget::paintEvent(QPaintEvent *event)
     painter.setPen(myPen2);
 
     foreach (QPoint p, sensor_points) {
-        painter.drawPoint(p.x() + screen_size.x(), p.y() + screen_size.y());
+        painter.drawPoint(p.x()/PRINT_RATIO + screen_size.x(), p.y()/PRINT_RATIO + screen_size.y());
     }
 
     QPen myPen4(Qt::green, 5, Qt::SolidLine);
@@ -110,21 +110,21 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
                res_1, size, 0.5,1.005);
 
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint((int)((res_1+i)->x+0.5),(int)((res_1+i)->y+0.5));
+        QPoint* p = new QPoint((int)((res_1+i)->x/PRINT_RATIO+0.5),(int)((res_1+i)->y/PRINT_RATIO+0.5));
         points.append(*p);
     }
 
     calc_hyper(sen_2, sen_3,\
                res_2, size, 0.5,1.005);
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint((int)((res_2+i)->x+0.5),(int)((res_2+i)->y+0.5));
+        QPoint* p = new QPoint((int)((res_2+i)->x/PRINT_RATIO+0.5),(int)((res_2+i)->y/PRINT_RATIO+0.5));
         points.append(*p);
     }
 
     calc_hyper(sen_3, sen_1,\
                res_3, size, 0.5,1.005);
     for(int i = 0; i < size; i++){
-        QPoint* p = new QPoint((int)((res_3+i)->x+0.5),(int)((res_3+i)->y+0.5));
+        QPoint* p = new QPoint((int)((res_3+i)->x/PRINT_RATIO+0.5),(int)((res_3+i)->y/PRINT_RATIO+0.5));
         points.append(*p);
     }
 
@@ -136,7 +136,7 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
                       size, &num_inter);
 
     for(int i = 0; i < num_inter; i++){
-        QPoint* p = new QPoint((int)((inter+i)->x+0.5),(int)((inter+i)->y+0.5));
+        QPoint* p = new QPoint((int)((inter+i)->x/PRINT_RATIO+0.5),(int)((inter+i)->y/PRINT_RATIO+0.5));
         inter_points.append(*p);
     }
 
@@ -146,7 +146,7 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
                       size, &num_inter);
 
     for(int i = 0; i < num_inter; i++){
-        QPoint* p = new QPoint((int)((inter+i)->x+0.5),(int)((inter+i)->y+0.5));
+        QPoint* p = new QPoint((int)((inter+i)->x/PRINT_RATIO+0.5),(int)((inter+i)->y/PRINT_RATIO+0.5));
         inter_points.append(*p);
     }
 
@@ -156,7 +156,7 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
                       size, &num_inter);
 
     for(int i = 0; i < num_inter; i++){
-        QPoint* p = new QPoint((int)((inter+i)->x+0.5),(int)((inter+i)->y+0.5));
+        QPoint* p = new QPoint((int)((inter+i)->x/PRINT_RATIO+0.5),(int)((inter+i)->y/PRINT_RATIO+0.5));
         inter_points.append(*p);
     }
 

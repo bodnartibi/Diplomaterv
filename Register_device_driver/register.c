@@ -72,44 +72,45 @@ DECLARE_WAIT_QUEUE_HEAD(wq2);
 
 static void work_fn(struct work_struct* work) {
   printk(KERN_INFO "work_fn: called\n");
-  if (reg_ready[0])
+  if (reg_ready[0]) {
+    printk(KERN_INFO "Reg 0 new value: %x\n",reg[0]);
     wake_up(&wq0);
-  if (reg_ready[1])
+  }
+  if (reg_ready[1]) {
+    printk(KERN_INFO "Reg 1 new value: %x\n",reg[1]);
     wake_up(&wq1);
-  if (reg_ready[2])
+  }
+  if (reg_ready[2]) {
+    printk(KERN_INFO "Reg 2 new value: %x\n",reg[2]);
     wake_up(&wq2);
+  }
 }
 
 unsigned int reg_poll(struct file *filep, poll_table *wait )
 {
   unsigned int mask = 0;
-  printk(KERN_INFO "poll: called\n");
   switch(MINOR(filep->f_dentry->d_inode->i_rdev)){
     case 0:
       poll_wait( filep, &wq0, wait );
       if (reg_ready[0]) {
-        printk(KERN_INFO "poll 0: ready\n");
         mask |= ( POLLIN | POLLRDNORM );
       }
       break;
     case 1:
       poll_wait( filep, &wq1, wait );
       if (reg_ready[1]) {
-        printk(KERN_INFO "poll 1: ready\n");
         mask |= ( POLLIN | POLLRDNORM );
       }
       break;
     case 2:
       poll_wait( filep, &wq2, wait );
       if (reg_ready[2]) {
-        printk(KERN_INFO "poll 2: ready\n");
         mask |= ( POLLIN | POLLRDNORM );
       }
       break;
     default:
       return -EINVAL;
   }
-  printk(KERN_INFO "poll: end\n");
   return mask;
 }
 
@@ -145,7 +146,7 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
   // minor 3: mic 2
   reg_value = reg[minor];
 
-  printk(KERN_INFO "read from address %x: %x\n", (unsigned int)registers_addr[minor], reg_value);
+  //printk(KERN_INFO "read from address %x: %x\n", (unsigned int)registers_addr[minor], reg_value);
   copy_to_user(buf, &reg_value, sizeof(reg_value));
 
   reg_ready[minor] = 0;
@@ -174,7 +175,7 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
   copy_from_user(input_buffer, buf, c);
   value = *(u32*)buf;
-  printk(KERN_INFO "write: try to write into reg %x: %x\n", *(unsigned int*)registers_addr[minor], value);
+  //printk(KERN_INFO "write: try to write into reg %x: %x\n", *(unsigned int*)registers_addr[minor], value);
 
   iowrite32(value, registers_addr[minor]);
 
@@ -184,24 +185,31 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 static int myregister_remove(struct platform_device *pdev)
 {
   int index;
-
-  //class_unregister(regs_class);
-  class_destroy(regs_class);
-  /* Freeing the major number */
-  unregister_chrdev(registers_major, "my_FPGA_registers_device");
-
-  /* Freeing buffer memory */
-  if (input_buffer) {
-    kfree(input_buffer);
-  }
-
+  printk(KERN_INFO "Removing: ");
   for (index = 0; index < 3; index++) {
+    printk(KERN_INFO "device destroy index %d, ", index);
     device_destroy(regs_class, MKDEV(registers_major, index));
+    printk(KERN_INFO "iounmap index %d, ", index);
     iounmap(registers_addr[index]);
+    printk(KERN_INFO "release mem region index %d, ", index);
     release_mem_region(resource_mem[index]->start, remap_size[index]);
     free_irq(IRQ[index], pdev);
   }
 
+  //class_unregister(regs_class);
+  printk(KERN_INFO "\nclass destroy, ");
+  class_destroy(regs_class);
+  /* Freeing the major number */
+  printk(KERN_INFO "unregister chrdev, ");
+  unregister_chrdev(registers_major, "my_FPGA_registers_device");
+
+  /* Freeing buffer memory */
+  printk(KERN_INFO "free buffer, ");
+  if (input_buffer) {
+    kfree(input_buffer);
+  }
+
+  printk(KERN_INFO "destroy workqueue\n");
   destroy_workqueue(workQ);
   printk(KERN_INFO "Removing myreg modul\n");
 
@@ -211,7 +219,6 @@ static int myregister_remove(struct platform_device *pdev)
 static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
 {
   int reg_index;
-  printk(KERN_ERR "interrupt: called irq %d\n", irq);
   if (irq == IRQ[0]) {
     reg_index = 0;
   }
@@ -226,12 +233,8 @@ static irqreturn_t myregister_irq_handler(int irq, void *dev_id)
     return IRQ_NONE;
   }
   queue_work(workQ, &task[reg_index]);
-  printk(KERN_INFO "interrupt %d: insert task into queue\n", irq);
-
   reg[reg_index] = ioread32(registers_addr[reg_index]);
-  printk(KERN_INFO "interrupt %d: read %x index %d address %x\n", irq, reg[reg_index], reg_index, (unsigned int)registers_addr[reg_index]);
   reg_ready[reg_index] = 1;
-
   return IRQ_HANDLED;
 }
 

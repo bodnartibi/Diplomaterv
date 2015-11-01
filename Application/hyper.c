@@ -17,12 +17,12 @@ C nel h = a*sinb = b*sina
 // Az "a" hosszu oldalra huzott magassagot adja vissza
 double high_of_triangle(double a, double b, double c)
 {
-    double alfa;
-    double cosalfa;
+    double gamma;
+    double cosgamma;
     // cosG = (-c2+a2+b2)/2ab
-    cosalfa = (-pow(a,2.0)+pow(b,2.0)+pow(c,2.0))/(2*c*b);
-    alfa = acos(cosalfa);
-    return b*sin(alfa);
+    cosgamma = (-pow(c,2.0)+pow(b,2.0)+pow(a,2.0))/(2*a*b);
+    gamma = acos(cosgamma);
+    return b*sin(gamma);
 }
 
 int is_timestamps_correct(sensor_point s_1, \
@@ -53,8 +53,8 @@ int is_timestamps_correct(sensor_point s_1, \
     // egy magassaghoz a hozzatartozo ponthoz tartozo
     // mindket szomszedos pont idejet ellenoriznunk kell
     max_dist[0] = high_of_triangle(a,b,c);
-    max_dist[1] = high_of_triangle(b,a,c);
-    max_dist[2] = high_of_triangle(c,b,a);
+    max_dist[1] = high_of_triangle(b,c,a);
+    max_dist[2] = high_of_triangle(c,a,b);
 
     // 0: a-b
     sound_dist[0] = (s_1.time - s_2.time)*SOUND_SPEED;

@@ -62,3 +62,12 @@ export CROSS_COMPILE=/opt/pkg/petalinux-v2014.4-final/tools/linux-i386/arm-xilin
 
 make
 
+============================================
+=   rmmod problem                          =
+============================================
+
+zynq> rmmod register
+rmmod: chdir(3.9.0-xilinx): No such file or directory
+
+create a directory named "3.9.0-xilinx" in /lib/modules/
+

@@ -1,12 +1,12 @@
 Model {
-  Name			  "sigmadelta2"
+  Name			  "sigmadelta_csett_to_PDM"
   Version		  7.4
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.7"
+    ComputedModelVersion    "1.9"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -25,9 +25,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "Tibor"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Oct 08 23:35:00 2015"
-  RTWModifiedTimeStamp	  366247922
-  ModelVersionFormat	  "1.%<AutoIncrement:7>"
+  LastModifiedDate	  "Sat Oct 10 14:45:47 2015"
+  RTWModifiedTimeStamp	  366389127
+  ModelVersionFormat	  "1.%<AutoIncrement:9>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -110,7 +110,7 @@ Model {
 	  $ObjectID		  2
 	  Version		  "1.6.0"
 	  StartTime		  "0.0"
-	  StopTime		  "100.0"
+	  StopTime		  "10000.0"
 	  AbsTol		  "auto"
 	  FixedStep		  "auto"
 	  InitialStep		  "auto"
@@ -626,6 +626,11 @@ Model {
   }
   BlockParameterDefaults {
     Block {
+      BlockType		      FromFile
+      FileName		      "untitled.mat"
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Integrator
       ExternalReset	      "none"
       InitialConditionSource  "internal"
@@ -675,13 +680,6 @@ Model {
       SampleTime	      "-1"
     }
     Block {
-      BlockType		      Sin
-      SineType		      "Time based"
-      TimeSource	      "Use simulation time"
-      SampleTime	      "-1"
-      VectorParams1D	      on
-    }
-    Block {
       BlockType		      Sum
       IconShape		      "rectangular"
       Inputs		      "++"
@@ -713,8 +711,8 @@ Model {
     }
   }
   System {
-    Name		    "sigmadelta2"
-    Location		    [21, 116, 816, 754]
+    Name		    "sigmadelta_csett_to_PDM"
+    Location		    [32, 144, 902, 613]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -728,7 +726,15 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "195"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    34
+    SIDHighWatermark	    38
+    Block {
+      BlockType		      FromFile
+      Name		      "From File"
+      SID		      38
+      Position		      [135, 143, 200, 167]
+      FileName		      "csett.mat"
+      SampleTime	      "0"
+    }
     Block {
       BlockType		      Integrator
       Name		      "Integrator"
@@ -754,8 +760,8 @@ Model {
       Ports		      [5]
       Position		      [495, 135, 520, 185]
       Floating		      off
-      Location		      [958, 72, 1798, 1051]
-      Open		      off
+      Location		      [186, 43, 1026, 762]
+      Open		      on
       NumInputPorts	      "5"
       ZoomMode		      "xonly"
       List {
@@ -770,20 +776,6 @@ Model {
       YMax		      "5~5~5~5~5"
       DataFormat	      "StructureWithTime"
       SampleInput	      on
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Sin
-      Name		      "Sine Wave"
-      SID		      6
-      Ports		      [0, 1]
-      Position		      [170, 195, 200, 225]
-      Amplitude		      "1"
-      Bias		      "0"
-      Frequency		      "0.05"
-      Phase		      "0"
-      Samples		      "10"
-      Offset		      "0"
       SampleTime	      "0"
     }
     Block {
@@ -881,16 +873,17 @@ Model {
       }
     }
     Line {
-      SrcBlock		      "Sine Wave"
+      SrcBlock		      "From File"
       SrcPort		      1
-      Points		      [15, 0]
+      Points		      [25, 0]
       Branch {
-	DstBlock		"Sum"
+	Points			[35, 0; 0, -15]
+	DstBlock		"Scope"
 	DstPort			1
       }
       Branch {
-	Points			[0, -70]
-	DstBlock		"Scope"
+	Points			[-5, 0]
+	DstBlock		"Sum"
 	DstPort			1
       }
     }
