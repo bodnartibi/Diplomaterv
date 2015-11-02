@@ -1,0 +1,85 @@
+Include CoreGenerator IP in EDK
+Starting Point
+
+https://sites.google.com/a/cs.ship.edu/fpga/xilinx-tricks/include-coregenerator-ip-in-edk
+
+Note:  I covered this in my YouTube site: http://www.youtube.com/watch?v=j6GX9z-C2Us
+Assuming you have done the following:
+From your EDK project, used the Create / Import Hardware wizard to create a custom "pcore"
+Using ISE, you opened the created the pcore and edited user_logic, and along the way you used Core Generator to create a custom logic core (IP).
+You compiled everything with EDK and received some nasty error like:
+ERROR:NgdBuild:604 - logical block
+   'shipcse_oscillator_0/shipcse_oscillator_0/USER_LOGIC_I/instance_name/sgen'
+   with type 'sine_generator' could not be resolved. A pin name misspelling can
+   cause this, a missing edif or ngc file, case mismatch between the block name
+   and the edif or ngc file name, or the misspelling of a type name. Symbol
+   'sine_generator' is not supported in target 'virtex5'
+
+To fix this, you must:
+Copy the ".v" or ".vhdl" file to the "hdl/verilog/*.v" or "hdl/vhdl.*.vhdl" directory
+Add the ".v" or ".vhdl" file created by Core Generator to the "data/*.pao" file
+Create a "netlist" directory
+Copy the ".ngc" file there, and then create/edit a "data/.bbd" file.
+In EDK, do a "make clean" to clean the project and force it to re-read MPD definitions.
+
+For example:
+I created the hardware peripheral "shipcse_oscillator" and its root directory is "/home/tbriggs/xilinx-xps/BriggsIP/lib/pcores/shipcse_oscillator_v1_00_a".  I edited my pcore using ISE.  I needed a CORDIC function, so I created it from within ISE using CoreGenerator, which resulted in some files being created in my project - in this case, in "$ROOT/hdl/verilog" (probably not the best place for them, but thats where they landed).
+$ROOT=/home/tbriggs/xilinx-xps/BriggsIP/lib/pcores/shipcse_oscillator_v1_00_a
+cp $ROOT/coregen/sine_generator.v $ROOT/hdl/verilog  # yes, this does nothing here!
+mkdir $ROOT/netlist
+cp $ROOT/coregen/sine_generator.ngc $ROOT/netlist
+vi $ROOT/data/shipcse_oscillator_v2_1_0.bbd (bold represents new / changed lines) (if you have more files to add, seperate them with commas (see below).
+FILES
+sine_generator.ngc
+
+vi $ROOT/data/shipcse_oscillator_v2_1_0.pao (bold represents new / changed lines)
+lib proc_common_v3_00_a  all 
+lib plbv46_slave_single_v1_01_a  all 
+lib interrupt_control_v2_01_a  all 
+lib shipcse_oscillator_v1_00_a sine_generator verilog
+lib shipcse_oscillator_v1_00_a oscillator verilog
+lib shipcse_oscillator_v1_00_a user_logic verilog
+lib shipcse_oscillator_v1_00_a shipcse_oscillator vhdl
+
+vi $ROOT/data/shipcse_oscillator_v2_1_0.mpd
+BEGIN shipcse_oscillator
+
+## Peripheral Options
+OPTION IPTYPE = PERIPHERAL
+OPTION IMP_NETLIST = TRUE
+OPTION HDL = MIXED
+OPTION IP_GROUP = MICROBLAZE:PPC:USER
+OPTION DESC = SHIPCSE_OSCILLATOR
+OPTION LONG_DESC = Simulates a voltage controlled oscillator (its a DCO)
+OPTION ARCH_SUPPORT_MAP = (others=DEVELOPMENT)
+
+### added to support ngc file
+OPTION RUN_NGCBUILD = TRUE
+OPTION STYLE = MIX
+
+## Bus Interfaces
+BUS_INTERFACE BUS = SPLB, BUS_STD = PLBV46, BUS_TYPE = SLAVE
+<snipped the file here....>
+
+
+To add additional CoreGen modules:
+Follow the procedure to copy the ".ngc" files into the "netlist" directory
+Follow the procedure to copy the ".v" file files into the "hdl/verilog" directory
+Follow the procedure to add an entry to the ".pao" file for the new verilog file
+Edit the ".bbd" file and add a new entry.
+For example, if you were to add a new CoreGen module named "foo":
+cp $ROOT/coregen/foo.v $ROOT/hdl/verilog
+cp $ROOT/coregen/foo.ngc $ROOT/netlist
+vi $ROOT?data/shipcse_oscillator_v2_1_0.pao
+lib proc_common_v3_00_a all 
+lib plbv46_slave_single_v1_01_a all 
+lib interrupt_control_v2_01_a all lib shipcse_oscillator_v1_00_a sine_generator verilog
+lib shipcse_oscillator_v1_00_a foo verilog
+lib shipcse_oscillator_v1_00_a oscillator verilog
+lib shipcse_oscillator_v1_00_a user_logic verilog
+lib shipcse_oscillator_v1_00_a shipcse_oscillator vhdl
+vi $ROOT/data/shipscse_oscillator_v2_1_0.bbd
+FILES
+sine_generator.ngc, foo.ngc
+
+Finally, do a "make clean" in EDK.

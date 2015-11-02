@@ -1,0 +1,15 @@
+##############################################################################
+## Filename:          C:/Users/Tibor/xilinx_projects/zynq/pcores/microphone_pre_v1_00_a/data/microphone_pre_v2_1_0.pao
+## Description:       Peripheral Analysis Order
+## Date:              Wed Sep 09 23:19:07 2015 (by Create and Import Peripheral Wizard)
+##############################################################################
+
+lib proc_common_v3_00_a  all 
+lib axi_lite_ipif_v1_01_a  all 
+lib microphone_pre_v1_00_a user_logic verilog
+lib microphone_pre_v1_00_a microphone_pre vhdl
+lib microphone_pre_v1_00_a Buffer verilog
+lib microphone_pre_v1_00_a Threshold verilog
+lib microphone_pre_v1_00_a Timer verilog
+lib microphone_pre_v1_00_a fifo_generator_v9_3 verilog
+lib microphone_pre_v1_00_a CIC verilog

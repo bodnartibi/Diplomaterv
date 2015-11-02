@@ -1,0 +1,11 @@
+##############################################################################
+## Filename:          C:/Users/Tibor/xilinx_projects/CIC_MB_2/pcores/cic_filter_per_v1_00_a/data/cic_filter_per_v2_1_0.pao
+## Description:       Peripheral Analysis Order
+## Date:              Sun Oct 25 13:00:47 2015 (by Create and Import Peripheral Wizard)
+##############################################################################
+
+lib proc_common_v3_00_a  all 
+lib axi_lite_ipif_v1_01_a  all 
+lib cic_filter_per_v1_00_a user_logic verilog
+lib cic_filter_per_v1_00_a cic_filter_per vhdl
+lib cic_filter_per_v1_00_a CIC_logsys verilog
