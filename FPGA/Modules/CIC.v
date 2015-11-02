@@ -40,10 +40,10 @@ begin
 if(rst)
 begin
 	integ <= 32'd0;
-	dec_cntr <= 15'd0;
+	dec_cntr <= 16'd0;
 	for(i = 0; i < 8; i = i+1)
 	begin
-		comb[i] <= 15'd0;
+		comb[i] <= 32'd0;
 	end
 	out_rdy <= 1'b0;
 end
@@ -76,7 +76,7 @@ begin
 		endcase
 
 		out_rdy <= 1'b1;
-		dec_cntr <= 15'd0;
+		dec_cntr <= 16'd0;
 	end
 	else
 	begin

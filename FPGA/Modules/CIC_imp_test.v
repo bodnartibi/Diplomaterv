@@ -50,7 +50,7 @@ module CIC_imp_test;
 		clk = 0;
 		rst = 0;
 		din = 0;
-		rate = 15'd3;
+		rate = 16'd3;
 		//rate = 0;
 		comb_num = 3'd4;
 
