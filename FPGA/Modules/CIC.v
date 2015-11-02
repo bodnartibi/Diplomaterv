@@ -53,7 +53,6 @@ begin
 	//integrator
 	integ <= integ + din;
 	//decimator
-	dec_cntr <= dec_cntr + 1;
 	if(dec_cntr == dec_num)
 	begin
 		//comb
@@ -81,6 +80,7 @@ begin
 	else
 	begin
 		out_rdy <= 1'b0;
+		dec_cntr <= dec_cntr + 1;
 	end
 end
 
