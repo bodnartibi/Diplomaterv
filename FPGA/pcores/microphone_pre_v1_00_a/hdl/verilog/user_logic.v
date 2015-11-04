@@ -280,8 +280,9 @@ CIC CIC(
 	.rst(!Bus2IP_Resetn),                  // reset
 	// TODO, ezek akar allithatoak is lehetnenek
 	// TODO 2: akkor mar a threshold modult is így kell megcsinalni
-	.comb_num(3'd7),       // comb's rate
-	.dec_num(8'd25),       // decimator's rate
+	// TODO 3: decimalas a timer osztasahoz kell igazitani
+	.comb_num(4'd12),       // comb's rate
+	.dec_num(8'd15),       // decimator's rate
 	.data_out(cic_data), // CIC filter output
 	.data_out_valid(cic_data_valid),  // output valid
 	

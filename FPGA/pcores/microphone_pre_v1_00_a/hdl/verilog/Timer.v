@@ -33,6 +33,7 @@ module Timer(
 
 reg [31:0] timer;
 reg [31:0] prev;
+reg [31:0] cntr; // orajelosztashoz
 
 // a timernek addig kell tartania az erteket,
 // amig az nem nyugtazodik a masik oldalrol
@@ -45,21 +46,32 @@ begin
 			timer_out <= 32'd0;
 			timer <= 32'd0;
 			prev <= 32'd0;
+			cntr <= 32'd0;
 		end
 	else
 		begin
-			timer <= timer + 1;
+		   // CIC 50MHz-et kap, de 1MHz-el jönnek az adatok, azt 16-odra ecimalja
+			// azaz a cic az 50MHz 800-ad reszevel ad ki adatot (50*16=800)
+			if(cntr == 32'd799)
+			begin
+				cntr <= 32'd0;
+				timer <= timer + 1;
+			end
+			else
+			begin
+				cntr <= cntr + 1;
+			end
 		// ha uj detect jel jott
 		// ha ez meg mindig az elozo,
 		// akkor nem frissitjuk a kimenetet
 		if(detect == 1'b1 && timer_valid == 1'b0)
 		begin
-		   if( (timer - prev) > 32'd5000000 )
-			begin
+		   //if( (timer - prev) > 32'd6250 )
+			//begin
 				timer_valid <= 1'b1;
 				timer_out <= timer;
-			end
-			prev <= timer;
+			//end
+			//prev <= timer;
 		end
 		// nyugtaztak a kimenetet,
 		// ezutan varhatjuk a kovetkezo detect jelet
