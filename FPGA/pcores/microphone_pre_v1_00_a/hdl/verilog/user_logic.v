@@ -141,7 +141,7 @@ output                                    IP2Bus_Error;
   wire data_in;
 
 	wire timer_valid_timer2buffer;
-	wire timer_timer2buffer;
+	wire [31:0] timer_timer2buffer;
 	wire ack_buffer2timer;
 	wire INT;
 	
@@ -244,14 +244,14 @@ assign IP2Bus_Data = (slv_read_ack == 1'b1) ? slv_ip2bus_data :  0 ;
 
 Threshold threshold(
 	.data(cic_data),
-  .data_valid(cic_data_valid),
+	.data_valid(cic_data_valid),
 	.rst(~Bus2IP_Resetn),
 	.clk(Bus2IP_Clk),
 	.HIGH(high_state),
 	.LOW(low_state),
 	.ack(ack_buffer2timer),
-  .valid(timer_valid_timer2buffer),
-	.detect_time(timer_timer2buffer),
+	.valid(timer_valid_timer2buffer),
+	.detect_time(timer_timer2buffer)
 );
 
 fifo_generator_v9_3 fifo(
@@ -273,8 +273,6 @@ CIC CIC(
 	.clk(Bus2IP_Clk),                  // clock in 50 MHz
 	.rst(!Bus2IP_Resetn),                  // reset
 	// TODO, ezek akar allithatoak is lehetnenek
-	// TODO 2: akkor mar a threshold modult is ugy kell megcsinalni
-	// TODO 3: decimalas a timer osztasahoz kell igazitani
 	.comb_num(4'd12),       // comb's rate
 	.dec_num(8'd15),       // decimator's rate
 	.data_out(cic_data), // CIC filter output
