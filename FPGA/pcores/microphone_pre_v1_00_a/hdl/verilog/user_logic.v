@@ -185,8 +185,9 @@ output                                    IP2Bus_Error;
         begin
           slv_reg0 <= 0;
           slv_reg1 <= 0;
-			 high_state <= 32'd110;
-			 low_state <= 32'd100;
+			 //TODO ezt a szûrõfokszámból számolni
+			 high_state <= 32'd165;
+			 low_state <= 32'd50;
         end
       else
         case ( slv_reg_write_sel )
@@ -273,7 +274,7 @@ CIC CIC(
 	.clk(Bus2IP_Clk),                  // clock in 50 MHz
 	.rst(!Bus2IP_Resetn),                  // reset
 	// TODO, ezek akar allithatoak is lehetnenek
-	.comb_num(4'd12),       // comb's rate
+	.comb_num(5'd17),       // comb's rate
 	.dec_num(8'd15),       // decimator's rate
 	.data_out(cic_data), // CIC filter output
 	.data_out_valid(cic_data_valid),  // output valid

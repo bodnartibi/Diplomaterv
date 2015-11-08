@@ -70,7 +70,7 @@ begin
 			begin
 				valid <= 1'b0;
 				zero_cntr <= 32'd0;
-				if(signal)
+				if((data > HIGH) && data_valid)
 				begin
 					max_value <= data;
 					max_value_time <= timer;
@@ -87,7 +87,7 @@ begin
 				// jott uj jel idon belul,
 				// ujrakezdjük a zero szamlalast
 				// frissitjuk a legnagyobb ertekeket, ha kell
-				if(signal)
+				if((data > HIGH) && data_valid)
 				begin
 					zero_cntr <= 32'd0;
 					if (data > max_value)
@@ -97,7 +97,7 @@ begin
 					end
 				end
 				// nem jott jel, szamolunk, es ellenõrizzuk
-				else
+				else if (data_valid)
 				begin
 					zero_cntr <= zero_cntr + 1;
 					// ha mar eleg nulla jott
