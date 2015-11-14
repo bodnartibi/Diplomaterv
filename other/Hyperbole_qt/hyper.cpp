@@ -3,21 +3,89 @@
 // remove
 #include <stdio.h>
 
-int is_timestamps_correct(sensor_point s_1, \
-                          sensor_point s_2)
-{
-    /*
-    int sound_dist;
-    int sensor_dist;
-
-    sensor_dist = sqrt(pow(s_1.p.x - s_2.p.x, 2.0) + pow(s_1.p.y - s_2.p.y, 2.0));
-    sound_dist = abs(s_1.time - s_2.time)*SOUND_SPEED;
-
-    if(sound_dist > sensor_dist)
-        return 0;
+/*
+Koszinusz tetellel ki kell szamolnunk a haromszog egy pontjahoz tartozo szoget,
+majd azzal kiszamolnunk a magassagat ahhoz a ponthoz.
+A magassagnal nem lehet nagyobb a hang altal megtett ut.
+C csucsra:
+c2=a2+b2-2abcos(gamma)
+A nal h = b*sinc = c*sinb
+C nel h = a*sinb = b*sina
 */
+
+
+// Az "a" hosszu oldalra huzott magassagot adja vissza
+double high_of_triangle(double a, double b, double c)
+{
+    double gamma;
+    double cosgamma;
+    // cosG = (-c2+a2+b2)/2ab
+    cosgamma = (-pow(c,2.0)+pow(b,2.0)+pow(a,2.0))/(2*a*b);
+    gamma = acos(cosgamma);
+    return b*sin(gamma);
+}
+
+int is_timestamps_correct(sensor_point s_1, \
+                          sensor_point s_2, \
+                          sensor_point s_3)
+{
+    int index;
+    double sound_dist[3];
+    double max_dist[3];
+
+
+    //TEMP
+    //
+    //
+    //
+    return 1;
+
+/*
+    A1          A = sen. 1
+    |\          B = sen. 2
+  c | \  b      C = sen. 3
+    |  \
+    -----
+  B2  a   C3
+*/
+
+    double a,b,c;
+
+    // A point, sen. 1 --> a side
+    a = sqrt(pow(s_2.p.x - s_3.p.x, 2.0) + pow(s_2.p.y - s_3.p.y, 2.0));
+
+    b = sqrt(pow(s_1.p.x - s_3.p.x, 2.0) + pow(s_1.p.y - s_3.p.y, 2.0));
+    c = sqrt(pow(s_1.p.x - s_2.p.x, 2.0) + pow(s_1.p.y - s_2.p.y, 2.0));
+
+    // egy magassaghoz a hozzatartozo ponthoz tartozo
+    // mindket szomszedos pont idejet ellenoriznunk kell
+    max_dist[0] = high_of_triangle(a,b,c);
+    max_dist[1] = high_of_triangle(b,c,a);
+    max_dist[2] = high_of_triangle(c,a,b);
+
+    // 0: a-b
+    sound_dist[0] = (s_1.time - s_2.time)*SOUND_SPEED;
+    // 1: a-c
+    sound_dist[1] = (s_1.time - s_3.time)*SOUND_SPEED;
+    // 2: b-c
+    sound_dist[2] = (s_2.time - s_3.time)*SOUND_SPEED;
+
+    printf("Distences: \n");
+    for (index = 0; index < 3; index++)
+    {
+        printf("Max %f sound %f\n", max_dist[index],sound_dist[index]);
+    }
+
+    if(sound_dist[0] > max_dist[0] || sound_dist[1] > max_dist[0] || \
+       sound_dist[0] > max_dist[1] || sound_dist[2] > max_dist[1] || \
+       sound_dist[1] > max_dist[2] || sound_dist[2] > max_dist[2] )
+    {
+        return 0;
+    }
+
     return 1;
 }
+
 
 int calc_intersection(point* line_1, \
                       point* line_2, \
@@ -123,28 +191,20 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
 
     // hiperbola forgatasa szogenek kiszamitasa
 
-    vec.x = sensor_1.p.x - sensor_2.p.x;
-    vec.y = sensor_1.p.y - sensor_2.p.y;
+    vec.x = sensor_2.p.x - sensor_1.p.x;
+    vec.y = sensor_2.p.y - sensor_1.p.y;
 
-    if((sensor_1.p.x - sensor_2.p.x) == 0)
-    {
-        angle = M_PI/2;
-    }
-    else
-    {
-        angle = atan2(vec.y, vec.x) - atan2(0,1);
-    }
-
+    angle = atan2(vec.y, vec.x) - atan2(0,1);
     // hiperbola kiszamitasa
 
     //TODO meddigmenjen a ciklus
 
-    a = (distance + sound_distance)/2.0;
+    a = (distance)/2.0 - sound_distance;
     for(index = 0; index < res_length; ){
 
         // a kozelebbi szenzotrol "a" a tavolsag
         // a tavolabbitol a + dd
-        b = a - sound_distance;
+        b = a + 2*sound_distance;
 
         // coszinusztetellel a kozelebbinel levo szog
         coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));

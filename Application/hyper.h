@@ -5,7 +5,11 @@
 // 343.00 mm/ms
 // 0.3430 mm/us
 // 50 MHz counter -> 20 ns
-#define SOUND_SPEED 0.00686 // mm/20ns
+
+// 38kHz
+#define SOUND_SPEED 5.48 // mm/16microsec
+
+//#define SOUND_SPEED 0.00686 // mm/20ns
 //#define TIME_QUANTUM 0.02 // us
 // position must be in mm
 
