@@ -9,17 +9,21 @@ zynq: clean local_app.o_zynq hyper.o_zynq
 pc: clean local_app.o hyper.o
 	$(CC) $(LDFLAGS) local_app.o hyper.o -o local_app_pc -lm -ggdb
 
-test_zynq: clean test_distances.o_zynq hyper.o_zynq
-	$(CC_zynq) test_distances.o hyper.o -o test_dist_zynq -lm
+tests: test_dist
 
-test: clean test_distances.o hyper.o
-	$(CC) test_distances.o hyper.o -o test_dist -lm
+test_dist: test_dist_zynq test_dist_pc
+
+test_dist_zynq: clean test_distances.o_zynq
+	cd tests && $(CC_zynq) test_distances.o -o test_dist_zynq -lm
+
+test_dist_pc: clean test_distances.o 
+	cd tests && $(CC) test_distances.o -o test_dist -lm
 
 test_distances.o_zynq:
-	$(CC_zynq) -c test_distances.c
+	cd tests && $(CC_zynq) -c test_distances.c -I../
 
 test_distances.o:
-	$(CC) -c test_distances.c
+	cd tests && $(CC) -c test_distances.c -I../
 
 local_app.o:
 	$(CC) -c local_app.c

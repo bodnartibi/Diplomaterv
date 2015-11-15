@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "hyper.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -26,15 +25,18 @@ int main(int argc, char* argv[]){
   unsigned int times[3];
   int fd_mics[3];
   int t_ready[3];
+  double speed;
 
   fd_set watchset;
   fd_set inset;
 
-  if(argc < 4){
-    printf("%s \nUsage: \n<mic 1 register path> <mic 2 register path> <mic 3 register path>\n", argv[0]);
+  if(argc < 5){
+    printf("%s \nUsage: \n<mic 1 register path> <mic 2 register path> <mic 3 register path> <speed>\n", argv[0]);
     return 0;
   }
   printf("Start\n");
+
+  speed = atof (argv[4]);
 
   for(index = 0; index < 3 ; index++){
     printf("Opening mic %d: %s\n",index,argv[index+1]);
@@ -80,11 +82,11 @@ int main(int argc, char* argv[]){
         continue;
 
     // 0: a-b
-    sound_dist[0] = abs(times[0] - times[1])*SOUND_SPEED;
+    sound_dist[0] = abs(times[0] - times[1])*speed;
     // 1: a-c
-    sound_dist[1] = abs(times[1] - times[2])*SOUND_SPEED;
+    sound_dist[1] = abs(times[1] - times[2])*speed;
     // 2: b-c
-    sound_dist[2] = abs(times[0] - times[2])*SOUND_SPEED;
+    sound_dist[2] = abs(times[0] - times[2])*speed;
 
     printf("1.- 2. : %f\n",sound_dist[0]);
     printf("2.- 3. : %f\n",sound_dist[1]);

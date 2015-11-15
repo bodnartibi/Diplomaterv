@@ -21,6 +21,7 @@ pthread_cond_t cond_common;
 pthread_t worker_thread;
 
 sensor_point sen_1, sen_2, sen_3;
+double sound_speed;
 
 typedef struct time_elem_t {
   struct time_elem_t* next;
@@ -122,7 +123,7 @@ void* worker_fn(void* arg){
     sen_2.time = times[1];
     sen_3.time = times[2];
 
-    if( !is_timestamps_correct(sen_1, sen_2, sen_3))
+    if( !is_timestamps_correct(sen_1, sen_2, sen_3, sound_speed))
     {
         printf("Bad datas, dropping timestamps\n");
         t_ready[0] = 0;
@@ -138,10 +139,10 @@ void* worker_fn(void* arg){
     res_3 = (point*)malloc(sizeof(point)*size);
 
     calc_hyper(sen_1, sen_2, \
-               res_1, size, 0.05,1.01);
+               res_1, size, 0.05,1.01, sound_speed);
 
     calc_hyper(sen_2, sen_3, \
-               res_2, size, 0.05,1.01);
+               res_2, size, 0.05,1.01, sound_speed);
 
 // eleg ket hiperbolat kiszamitani
 //    calc_hyper(sen_3, sen_1, \
@@ -226,9 +227,9 @@ int main(int argc, char* argv[]){
   fd_set watchset;
   fd_set inset;
 
-  if(argc < 10){
+  if(argc < 11){
     printf("%s \nUsage: \n<mic 1 register path> <mic 2 register path> <mic 3 register path>\n", argv[0]);
-    printf("<mic 1 X> <mic 1 Y> <mic 2 X> <mic 2 Y> <mic 3 X> <mic 3 Y>\n");
+    printf("<mic 1 X> <mic 1 Y> <mic 2 X> <mic 2 Y> <mic 3 X> <mic 3 Y>\n <sound speed (mm/timequantum)>\n");
     return 0;
   }
   printf("Start\n");
@@ -239,6 +240,7 @@ int main(int argc, char* argv[]){
   sen_2.p.y = atof (argv[7]);
   sen_3.p.x = atof (argv[8]);
   sen_3.p.y = atof (argv[9]);
+  sound_speed = atof (argv[10]);
 
   printf("Coordinates in order:\n%f %f\n%f %f\n%f %f\n", \
           sen_1.p.x, sen_1.p.y, \

@@ -27,7 +27,8 @@ double high_of_triangle(double a, double b, double c)
 
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \
-                          sensor_point s_3)
+                          sensor_point s_3, \
+                          double sound_speed)
 {
     int index;
     double sound_dist[3];
@@ -57,12 +58,12 @@ int is_timestamps_correct(sensor_point s_1, \
     max_dist[2] = high_of_triangle(c,a,b);
 
     // 0: a-b
-    sound_dist[0] = abs(s_1.time - s_2.time)*SOUND_SPEED;
+    sound_dist[0] = (s_1.time - s_2.time)*sound_speed;
     // 1: a-c
-    sound_dist[1] = abs(s_1.time - s_3.time)*SOUND_SPEED;
+    sound_dist[1] = (s_1.time - s_3.time)*sound_speed;
     // 2: b-c
-    sound_dist[2] = abs(s_2.time - s_3.time)*SOUND_SPEED;
-    
+    sound_dist[2] = (s_2.time - s_3.time)*sound_speed;
+
     printf("Distences: \n");
     for (index = 0; index < 3; index++)
     {
@@ -78,6 +79,7 @@ int is_timestamps_correct(sensor_point s_1, \
 
     return 1;
 }
+
 
 int calc_intersection(point* line_1, \
                       point* line_2, \
@@ -125,12 +127,11 @@ int calc_intersection(point* line_1, \
 
 
 void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
-                point* res, int res_length,\
-                double step, double gain
+                point* res, int res_length, \
+                double step, double gain, \
+                double sound_speed
                 )
 {
-    // hangsebesseg
-    const double speed = SOUND_SPEED;
     // ket szenzor tavolsaga
     double distance;
     // felezopont koordinatai
@@ -169,9 +170,9 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
 
     // regiszter tulcsordulasa nem okoz problemat
     // 1 - UINT_MAX = 2
-    sound_distance = (sensor_1.time - sensor_2.time)*speed;
+    sound_distance = (int)(sensor_1.time - sensor_2.time)*sound_speed;
 
-    //    sound_distance = (sensor_2.time - sensor_1.time)*speed;
+    //    sound_distance = (sensor_2.time - sensor_1.time)*sound_speed;
     //TODO függnek a dolgok az idokvantumtol (ms, ns)
 
     // a ket szenzor tavolsagat
@@ -183,31 +184,24 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
 
     // hiperbola forgatasa szogenek kiszamitasa
 
-    vec.x = sensor_1.p.x - sensor_2.p.x;
-    vec.y = sensor_1.p.y - sensor_2.p.y;
+    vec.x = sensor_2.p.x - sensor_1.p.x;
+    vec.y = sensor_2.p.y - sensor_1.p.y;
 
-    if((sensor_1.p.x - sensor_2.p.x) == 0)
-    {
-        angle = M_PI/2;
-    }
-    else
-    {
-        angle = atan2(vec.y, vec.x) - atan2(0,1);
-    }
-
+    angle = atan2(vec.y, vec.x) - atan2(0,1);
     // hiperbola kiszamitasa
 
     //TODO meddigmenjen a ciklus
 
-    a = (distance + sound_distance)/2.0;
+    a = (distance)/2.0 - sound_distance;
     for(index = 0; index < res_length; ){
 
         // a kozelebbi szenzotrol "a" a tavolsag
         // a tavolabbitol a + dd
-        b = a - sound_distance;
+        b = a + 2*sound_distance;
 
         // coszinusztetellel a kozelebbinel levo szog
         coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));
+        //coslamd = (1/(2*a*distance)) * (-pow(a,2.0) - pow(distance,2.0) + pow(b,2.0));
 
         // kozepponttol a tavolsag
         s = sqrt(pow(a,2.0) + pow(distance,2.0)/4.0 - a*distance*coslamd);
@@ -235,7 +229,7 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
             (res + index)->y = y;
             index++;
 
-            a +=step;
+            a = a*gain;
             continue;
         }
         x = s * cosfi;
