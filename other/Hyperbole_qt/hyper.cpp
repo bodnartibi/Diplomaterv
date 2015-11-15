@@ -27,18 +27,13 @@ double high_of_triangle(double a, double b, double c)
 
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \
-                          sensor_point s_3)
+                          sensor_point s_3, \
+                          double sound_speed)
 {
     int index;
     double sound_dist[3];
     double max_dist[3];
 
-
-    //TEMP
-    //
-    //
-    //
-    return 1;
 
 /*
     A1          A = sen. 1
@@ -64,11 +59,11 @@ int is_timestamps_correct(sensor_point s_1, \
     max_dist[2] = high_of_triangle(c,a,b);
 
     // 0: a-b
-    sound_dist[0] = (s_1.time - s_2.time)*SOUND_SPEED;
+    sound_dist[0] = (s_1.time - s_2.time)*sound_speed;
     // 1: a-c
-    sound_dist[1] = (s_1.time - s_3.time)*SOUND_SPEED;
+    sound_dist[1] = (s_1.time - s_3.time)*sound_speed;
     // 2: b-c
-    sound_dist[2] = (s_2.time - s_3.time)*SOUND_SPEED;
+    sound_dist[2] = (s_2.time - s_3.time)*sound_speed;
 
     printf("Distences: \n");
     for (index = 0; index < 3; index++)
@@ -133,12 +128,11 @@ int calc_intersection(point* line_1, \
 
 
 void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
-                point* res, int res_length,\
-                double step, double gain
+                point* res, int res_length, \
+                double step, double gain, \
+                double sound_speed
                 )
 {
-    // hangsebesseg
-    const double speed = SOUND_SPEED;
     // ket szenzor tavolsaga
     double distance;
     // felezopont koordinatai
@@ -177,9 +171,9 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
 
     // regiszter tulcsordulasa nem okoz problemat
     // 1 - UINT_MAX = 2
-    sound_distance = (int)(sensor_1.time - sensor_2.time)*speed;
+    sound_distance = (int)(sensor_1.time - sensor_2.time)*sound_speed;
 
-    //    sound_distance = (sensor_2.time - sensor_1.time)*speed;
+    //    sound_distance = (sensor_2.time - sensor_1.time)*sound_speed;
     //TODO függnek a dolgok az idokvantumtol (ms, ns)
 
     // a ket szenzor tavolsagat

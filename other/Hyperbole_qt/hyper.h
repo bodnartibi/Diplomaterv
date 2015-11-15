@@ -7,7 +7,10 @@
 // 50 MHz counter -> 20 ns
 
 // 38kHz
-#define SOUND_SPEED 5.48 // mm/16microsec
+#define DEF_SOUND_SPEED 5.48 // mm/16microsec
+
+// 3.087 mm / 9 microsec
+// 111.111 kHz
 
 //#define SOUND_SPEED 0.00686 // mm/20ns
 //#define TIME_QUANTUM 0.02 // us
@@ -28,11 +31,13 @@ typedef struct sensor_point_ {
 
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \
-                          sensor_point s_3);
+                          sensor_point s_3, \
+                          double sound_speed);
 
 void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
                 point* res, int res_length, \
-                double step, double gain);
+                double step, double gain, \
+                double sound_speed);
 
 int calc_intersection(point* line_1, \
                       point* line_2, \

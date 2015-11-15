@@ -32,7 +32,7 @@ private:
 signals:
 
 public slots:
-    void start_draw(QList<int> x, QList<int> y, QList<int> t, int size);
+    void start_draw(QList<int> x, QList<int> y, QList<int> t, int size, double speed);
     //void start_draw();
 };
 

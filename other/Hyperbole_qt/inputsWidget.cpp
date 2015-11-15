@@ -45,15 +45,17 @@ InputsWidget::InputsWidget(QWidget *drawW): QWidget(drawW)
     grid_layout->addWidget(error_label,4,0);
 
     calc_button = new QPushButton("Calculate");
-    grid_layout->addWidget(calc_button,0,4);
+    grid_layout->addWidget(calc_button,0,0);
     connect(calc_button,SIGNAL(clicked()), this, SLOT(start_calc()));
-    connect(this,SIGNAL(send_start_draw(QList<int>, QList<int>, QList<int>, int)), \
-            drawW, SLOT(start_draw(QList<int>, QList<int>, QList<int>, int)));
+    connect(this,SIGNAL(send_start_draw(QList<int>, QList<int>, QList<int>, int, double)), \
+            drawW, SLOT(start_draw(QList<int>, QList<int>, QList<int>, int, double)));
 
-    grid_layout->addWidget(new QLabel("Number of points"),1,4);
+    grid_layout->addWidget(new QLabel("Number of points"),0,4);
     num_line = new QLineEdit();
-    grid_layout->addWidget(num_line,2,4);
-
+    grid_layout->addWidget(num_line,1,4);
+    grid_layout->addWidget(new QLabel("Speed"),2,4);
+    speed_line = new QLineEdit();
+    grid_layout->addWidget(speed_line,3,4);
 
 }
 
@@ -64,6 +66,7 @@ void InputsWidget::start_calc()
     QList<int> y;
     QList<int> t;
     int size;
+    double speed;
 
     x.append(first_x_line->text().toInt(&OK));
     if(!OK)
@@ -97,8 +100,12 @@ void InputsWidget::start_calc()
     if(!OK)
         goto error;
 
+    speed = speed_line->text().toDouble(&OK);
+    if(!OK)
+        goto error;
+
     print_error("");
-    emit send_start_draw(x,y,t,size);
+    emit send_start_draw(x,y,t,size,speed);
     return;
 
     error:

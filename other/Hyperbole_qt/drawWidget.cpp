@@ -32,14 +32,14 @@ void DrawWidget::paintEvent(QPaintEvent *event)
         painter.drawPoint(screen_size.x(), i);
 
         // y tengely
-        painter.drawPoint(i , screen_size.y());
+        painter.drawPoint(i, screen_size.y()+200);
     }
 
     QPen myPen(Qt::blue, 2, Qt::SolidLine);
     painter.setPen(myPen);
 
     foreach (QPoint p, points) {
-        painter.drawPoint(p.x() + screen_size.x(), p.y() + screen_size.y());
+        painter.drawPoint(p.x() + screen_size.x(), -p.y() + screen_size.y()+200);
     }
 
     QPen myPen2(Qt::red, 5, Qt::SolidLine);
@@ -47,7 +47,7 @@ void DrawWidget::paintEvent(QPaintEvent *event)
     painter.setPen(myPen2);
 
     foreach (QPoint p, sensor_points) {
-        painter.drawPoint(p.x()/PRINT_RATIO + screen_size.x(), p.y()/PRINT_RATIO + screen_size.y());
+        painter.drawPoint(p.x()/PRINT_RATIO + screen_size.x(), -p.y()/PRINT_RATIO + screen_size.y()+200);
     }
 
     QPen myPen4(Qt::green, 5, Qt::SolidLine);
@@ -55,7 +55,7 @@ void DrawWidget::paintEvent(QPaintEvent *event)
     painter.setPen(myPen4);
 
     foreach (QPoint p, inter_points) {
-        painter.drawPoint(p.x() + screen_size.x(), p.y() + screen_size.y());
+        painter.drawPoint(p.x() + screen_size.x(), -p.y() + screen_size.y()+200);
     }
 
 
@@ -63,7 +63,7 @@ void DrawWidget::paintEvent(QPaintEvent *event)
 }
 
 
-void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
+void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, double speed)
 {
 
 
@@ -107,7 +107,7 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
     points.clear();
 
     calc_hyper(sen_1, sen_2,\
-               res_1, size, 0.5,1.005);
+               res_1, size, 0.5,1.005, speed);
 
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)((res_1+i)->x/PRINT_RATIO+0.5),(int)((res_1+i)->y/PRINT_RATIO+0.5));
@@ -115,14 +115,14 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size)
     }
 
     calc_hyper(sen_2, sen_3,\
-               res_2, size, 0.5,1.005);
+               res_2, size, 0.5,1.005, speed);
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)((res_2+i)->x/PRINT_RATIO+0.5),(int)((res_2+i)->y/PRINT_RATIO+0.5));
         points.append(*p);
     }
 
     calc_hyper(sen_3, sen_1,\
-               res_3, size, 0.5,1.005);
+               res_3, size, 0.5,1.005, speed);
     for(int i = 0; i < size; i++){
         QPoint* p = new QPoint((int)((res_3+i)->x/PRINT_RATIO+0.5),(int)((res_3+i)->y/PRINT_RATIO+0.5));
         points.append(*p);
