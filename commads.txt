@@ -71,3 +71,8 @@ rmmod: chdir(3.9.0-xilinx): No such file or directory
 
 create a directory named "3.9.0-xilinx" in /lib/modules/
 
+============================================
+=   binary data into file                  =
+============================================
+
+echo -n -e \\x93\\x0\\x0\\x0 > file

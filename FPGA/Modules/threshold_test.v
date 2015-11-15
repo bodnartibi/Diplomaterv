@@ -4,10 +4,10 @@
 // Company: 
 // Engineer:
 //
-// Create Date:   20:12:31 04/12/2015
+// Create Date:   18:51:11 11/15/2015
 // Design Name:   Threshold
-// Module Name:   C:/Users/Tibor/xilinx_projects/dipterv_modules/threshold_test.v
-// Project Name:  dipterv_modules
+// Module Name:   C:/Users/Tibor/xilinx_projects/CIC_filter/threshold_test.v
+// Project Name:  CIC_filter
 // Target Device:  
 // Tool versions:  
 // Description: 
@@ -25,68 +25,86 @@
 module threshold_test;
 
 	// Inputs
-	reg [9:0] cntr;
-	reg cntr_valid;
+	reg [31:0] data;
+	reg data_valid;
 	reg rst;
 	reg clk;
+	reg [31:0] HIGH;
+	reg [31:0] LOW;
+	reg ack;
 
 	// Outputs
-	wire detect;
+	wire valid;
+	wire [31:0] detect_time;
 
 	// Instantiate the Unit Under Test (UUT)
 	Threshold uut (
-		.cntr(cntr), 
-		.cntr_valid(cntr_valid), 
+		.data(data), 
+		.data_valid(data_valid), 
 		.rst(rst), 
 		.clk(clk), 
-		.detect(detect)
+		.HIGH(HIGH), 
+		.LOW(LOW), 
+		.ack(ack), 
+		.valid(valid), 
+		.detect_time(detect_time)
 	);
 
-
-	// egy ertek erkezik
-	task value(input [9:0] cntr_);
+	task value(input [31:0] cntr_);
 	begin
 		#2
-		cntr = cntr_;
-		cntr_valid = 1'b1;
+		data = cntr_;
+		data_valid = 1'b1;
 		#2
-		cntr_valid = 1'b0;
+		data_valid = 1'b0;
+		#4;
 	end
 	endtask
 
 	initial begin
 		// Initialize Inputs
-		cntr = 0;
-		cntr_valid = 0;
+		data = 0;
+		data_valid = 0;
 		rst = 0;
-		clk = 0;
+		clk = 1;
+		HIGH = 32'd150;
+		LOW = 0;
+		ack = 0;
 
 		// Wait 100 ns for global reset to finish
 		#10;
+		rst = 1;
+		#2
+		rst = 0;
+		#2
+		value(32'd0);
+		value(32'd110);
+		value(32'd160);
+		value(32'd155);
+		value(32'd170);
+		value(32'd160);
+		value(32'd0);
+		value(32'd0);
+		value(32'd0);
+		value(32'd0);
+		value(32'd0);
+		value(32'd160);
+		value(32'd170);
+		value(32'd180);
+		value(32'd190);
+		value(32'd1170);
+		value(32'd0);
+		value(32'd0);
+		value(32'd0);
+		value(32'd0);
+		value(32'd0);
+		
         
 		// Add stimulus here
 
-		rst = 1;
-		#2
-		
-		rst = 0;
-		
-		value(10'd400);
-		value(10'd600);
-		value(10'd800);
-		value(10'd900);
-		value(10'd700);
-		value(10'd800);
-		value(10'd200);
-		value(10'd100);
-		value(10'd600);
-		value(10'd700);
-		value(10'd600);
-		value(10'd800);
-		value(10'd200);
 	end
       
 	always #1 clk = ~clk;
-		
+	
 endmodule
 

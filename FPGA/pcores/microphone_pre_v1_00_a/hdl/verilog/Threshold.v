@@ -31,15 +31,10 @@ module Threshold(
 		output reg [31:0] detect_time
     );
 
-reg [31:0] timer_cntr;
 reg [31:0] timer;
 reg [31:0] max_value;
-reg [31:0] max_value_time;
 reg [31:0] zero_cntr;
 reg [1:0] state;
-wire signal;
-// csak akkor erdekel minket a jel, ha az valid es hatarerteken kivul van
-assign signal = (data > HIGH) && data_valid;
 
 always@(posedge clk)
 begin
@@ -47,9 +42,7 @@ begin
 		begin
 		valid <= 1'b0;
 		timer <= 32'd0;
-		timer_cntr <= 32'd0;
 		max_value <= 32'd0;
-		max_value_time <= 32'd0;
 		zero_cntr <= 32'd0;
 		detect_time <= 32'd0;
 		state <= 2'd0;
@@ -73,7 +66,7 @@ begin
 				if((data > HIGH) && data_valid)
 				begin
 					max_value <= data;
-					max_value_time <= timer;
+					detect_time <= timer;
 					state <= 2'd1;
 				end
 				else
@@ -93,7 +86,7 @@ begin
 					if (data > max_value)
 					begin
 						max_value <= data;
-						max_value_time <= timer;
+						detect_time <= timer;
 					end
 				end
 				// nem jott jel, szamolunk, es ellenõrizzuk
@@ -103,7 +96,6 @@ begin
 					// ha mar eleg nulla jott
 					if(zero_cntr >= 32'd10000)
 					begin
-						detect_time <= max_value_time;
 						valid <= 1'b1;
 						max_value <= 32'd0;
 						state <= 2'd0;

@@ -45,7 +45,7 @@ reg local_valid_state;
 wire right_channel = 1'b1;
 assign channel = right_channel;
 
-reg [13:0] clk_counter = 13'd0;
+reg [31:0] clk_counter = 31'd0;
 reg clk_div_tc;
 wire clk_out_ris;
 wire clk_out_fall;
@@ -61,6 +61,7 @@ begin
 			clk_out <= 1'b1;
 			clk_div_tc <= 1'b1;
 			local_valid_state <= 1'b0;
+			data_out_valid <= 1'b0;
 		end
 	else
 		begin
@@ -78,20 +79,20 @@ begin
 				clk_div_tc <= 1'b0;
 				clk_counter <= clk_counter + 1;
 				end
-			
+
+			// egy orajelig legyen aktiv a CIC adat valid jele
 			if(local_valid && !local_valid_state)
 				begin
-				data_out_valid <= 1'b1;
 				local_valid_state <= 1'b1;
 				end
-			else if(local_valid && local_valid_state)
+			else if(!local_valid && local_valid_state)
 				begin
-				data_out_valid <= 1'b0;
+				data_out_valid <= 1'b1;
+				local_valid_state <=1'b0;
 				end
 			else
 				begin
 				data_out_valid <= 1'b0;
-				local_valid_state <=1'b 0;
 				end
 		end
 end
@@ -105,7 +106,7 @@ begin
 			dec_cntr <= 8'd0;
 			for(i = 0; i < 32; i = i+1)
 				comb[i] <= 31'd0;
-			data_out <= 15'd0;
+			data_out <= 32'd0;
 			local_valid <= 1'b0;
 		end
 	else if(clk_out_fall)
@@ -114,7 +115,6 @@ begin
 			//integrator
 			integ <= integ + data_in;
 			//decimator
-			dec_cntr <= dec_cntr + 1;
 			if(dec_cntr == dec_num)
 				begin
 					//comb
@@ -163,6 +163,7 @@ begin
 				end
 			else
 				begin
+					dec_cntr <= dec_cntr + 1;
 					local_valid <= 1'b0;
 				end
 		end
