@@ -171,7 +171,9 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
 
     // regiszter tulcsordulasa nem okoz problemat
     // 1 - UINT_MAX = 2
-    sound_distance = (int)(sensor_1.time - sensor_2.time)*sound_speed;
+    // kell a 2-es osztas, mert minden lepes a kozeppontol az egyik pont fele
+    // ketszeresere noveli a tavolsagkulonbseget
+    sound_distance = (int)(sensor_1.time - sensor_2.time)*(sound_speed)/2;
 
     //    sound_distance = (sensor_2.time - sensor_1.time)*sound_speed;
     //TODO függnek a dolgok az idokvantumtol (ms, ns)
