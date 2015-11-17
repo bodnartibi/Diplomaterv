@@ -150,7 +150,6 @@ output                                    IP2Bus_Error;
 	wire [5:0] data_count;
 	
 	reg [31:0] high_state;
-	reg [31:0] low_state;
   // ------------------------------------------------------
   // Example code to read/write user logic slave model s/w accessible registers
   // 
@@ -186,8 +185,7 @@ output                                    IP2Bus_Error;
           slv_reg0 <= 0;
           slv_reg1 <= 0;
 			 //TODO ezt a szûrõfokszámból számolni
-			 high_state <= 32'd155;
-			 low_state <= 32'd50;
+			 high_state <= 32'd200;
         end
       else
         case ( slv_reg_write_sel )
@@ -200,7 +198,7 @@ output                                    IP2Bus_Error;
           4'b0100 :
             for ( byte_index = 0; byte_index <= (C_SLV_DWIDTH/8)-1; byte_index = byte_index+1 )
               if ( Bus2IP_BE[byte_index] == 1 )
-                low_state[(byte_index*8) +: 8] <= Bus2IP_Data[(byte_index*8) +: 8];
+                slv_reg1[(byte_index*8) +: 8] <= Bus2IP_Data[(byte_index*8) +: 8];
 			 4'b0010 :
             for ( byte_index = 0; byte_index <= (C_SLV_DWIDTH/8)-1; byte_index = byte_index+1 )
               if ( Bus2IP_BE[byte_index] == 1 )
@@ -249,7 +247,7 @@ Threshold threshold(
 	.rst(~Bus2IP_Resetn),
 	.clk(Bus2IP_Clk),
 	.HIGH(high_state),
-	.LOW(low_state),
+	.zero_num(32'd10000),
 	.ack(ack_buffer2timer),
 	.valid(timer_valid_timer2buffer),
 	.detect_time(timer_timer2buffer)
@@ -272,10 +270,11 @@ fifo_generator_v9_3 fifo(
 
 CIC CIC(
 	.clk(Bus2IP_Clk),                  // clock in 50 MHz
-	.rst(!Bus2IP_Resetn),                  // reset
+	.rst(!Bus2IP_Resetn),	// reset
+	.clk_div(32'd8),              // x eseten (x+1)*2 az osztas
 	// TODO, ezek akar allithatoak is lehetnenek
-	.comb_num(5'd31),       // comb's rate
-	.dec_num(8'd8),       // decimator's rate
+	.comb_num(6'd63),       // comb's rate
+	.dec_num(8'd5),       // decimator's rate
 	.data_out(cic_data), // CIC filter output
 	.data_out_valid(cic_data_valid),  // output valid
 	

@@ -25,7 +25,7 @@ module Threshold(
 		input rst,
 		input clk,
 		input [31:0] HIGH,
-		input [31:0] LOW,
+		input [31:0] zero_num,
 		input ack,
 		output reg valid,
 		output reg [31:0] detect_time
@@ -94,7 +94,7 @@ begin
 				begin
 					zero_cntr <= zero_cntr + 1;
 					// ha mar eleg nulla jott
-					if(zero_cntr >= 32'd10000)
+					if(zero_cntr >= zero_num)
 					begin
 						valid <= 1'b1;
 						max_value <= 32'd0;

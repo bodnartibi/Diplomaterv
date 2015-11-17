@@ -3,7 +3,7 @@ function [csett] = wav_to_mat(in, out)
 % out: output .mat file path
 [csett,fs] = wavread(in);
 
-csett = csett*50;
+csett = csett;
 csett_t = [1:size(csett)];
 csett = transpose(csett);
 csett(1,:) = csett_t;
