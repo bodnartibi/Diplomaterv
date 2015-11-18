@@ -4,10 +4,10 @@
 // Company: 
 // Engineer:
 //
-// Create Date:   00:46:13 07/08/2015
+// Create Date:   18:04:55 11/15/2015
 // Design Name:   CIC
-// Module Name:   C:/Users/Tibor/xilinx_projects/CIC_filter/CIC_imp_test.v
-// Project Name:  CIC_filter
+// Module Name:   C:/Users/Tibor/xilinx_projects/zynq_full/pcores/microphone_pre_v1_00_a/devl/projnav/CIC_test.v
+// Project Name:  microphone_pre
 // Target Device:  
 // Tool versions:  
 // Description: 
@@ -27,54 +27,50 @@ module CIC_imp_test;
 	// Inputs
 	reg clk;
 	reg rst;
-	reg din;
-	reg [15:0] rate;
-	reg [2:0] comb_num;
+	reg [4:0] comb_num;
+	reg [7:0] dec_num;
+	reg data_in;
 
 	// Outputs
-	wire [31:0] out;
-	wire out_rdy;
+	wire [31:0] data_out;
+	wire data_out_valid;
+	wire channel;
+	wire clk_out;
+
 	// Instantiate the Unit Under Test (UUT)
 	CIC uut (
 		.clk(clk), 
 		.rst(rst), 
-		.din(din),
-		.comb_num(comb_num),
-		.dec_num(rate), 
-		.out(out),
-		.out_rdy(out_rdy)
+		.comb_num(comb_num), 
+		.dec_num(dec_num), 
+		.data_out(data_out), 
+		.data_out_valid(data_out_valid), 
+		.channel(channel), 
+		.clk_out(clk_out), 
+		.data_in(data_in)
 	);
-	
+
 	initial begin
 		// Initialize Inputs
 		clk = 0;
 		rst = 0;
-		din = 0;
-		rate = 16'd3;
-		//rate = 0;
-		comb_num = 3'd4;
+		comb_num = 31;
+		dec_num = 8;
+		data_in = 0;
 
-		#2;
-		
-		rst = 1;
-		#2;
-		
+		// Wait 100 ns for global reset to finish
+		#10;
+      rst = 1;
+		#2
 		rst = 0;
-		#2;
-		
-		#2;
-		din = 1;
-		#2;
-		
-		//din = 0;
-		#2;
-		
-		#2;
+		#2
+		data_in = 1;
+		#20;
+		// Add stimulus here
 
 	end
 	
 	always #1 clk = ~clk;
-	//always #10 din = ~din;
       
 endmodule
 

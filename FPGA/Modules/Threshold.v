@@ -19,53 +19,90 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-parameter CNTR_WIDTH	= 10;
-
-// TODO a hossz itt is vmi definebol jojjon
-//parameter HIGH	=	10'd800;
-//parameter LOW	=	10'd400;
-//ez
-parameter STATE_HIGH =	1'b1;
-parameter STATE_LOW	=	1'b0;
-
 module Threshold(
-    input [CNTR_WIDTH - 1:0] cntr,
-    input cntr_valid,
-	 input rst,
-	 input clk,
-    output reg detect
+		input [31:0] data,
+		input data_valid,
+		input rst,
+		input clk,
+		input [31:0] HIGH,
+		input [31:0] LOW,
+		input ack,
+		output reg valid,
+		output reg [31:0] detect_time
     );
 
-reg state;
-wire [9:0] HIGH = 10'd800;
-wire [9:0] LOW = 10'd400;
+reg [31:0] timer;
+reg [31:0] max_value;
+reg [31:0] zero_cntr;
+reg [1:0] state;
 
 always@(posedge clk)
 begin
 	if(rst)
 		begin
-		state <= STATE_LOW;
-		detect <= 1'b0;
+		valid <= 1'b0;
+		timer <= 32'd0;
+		max_value <= 32'd0;
+		zero_cntr <= 32'd0;
+		detect_time <= 32'd0;
+		state <= 2'd0;
 		end
+
 	else
+
+		// a szuro kimenete leptesse az idot
+		if(data_valid)
 		begin
-		if(state == STATE_LOW)
+			timer <= timer + 1;
+		end
+
+
+		case (state)
+		// nem ablakban vagyunk
+		2'd0 :
 			begin
-			if(cntr >= HIGH && cntr_valid)
+				valid <= 1'b0;
+				zero_cntr <= 32'd0;
+				if((data > HIGH) && data_valid)
 				begin
-				state <= STATE_HIGH;
-				detect <= 1'b1;
+					max_value <= data;
+					detect_time <= timer;
+					state <= 2'd1;
+				end
+				else
+				begin
+					max_value <= 32'd0;
 				end
 			end
-		
-		if(state == STATE_HIGH)
+		// ablakban vagyunk
+		2'd1 :
 			begin
-			// csak egy orajelig magas a detect
-			detect <= 1'b0;
-			if(cntr <= LOW  && cntr_valid)
-				state <= STATE_LOW;
+				// jott uj jel idon belul,
+				// ujrakezdjük a zero szamlalast
+				// frissitjuk a legnagyobb ertekeket, ha kell
+				if((data > HIGH) && data_valid)
+				begin
+					zero_cntr <= 32'd0;
+					if (data > max_value)
+					begin
+						max_value <= data;
+						detect_time <= timer;
+					end
+				end
+				// nem jott jel, szamolunk, es ellenõrizzuk
+				else if (data_valid)
+				begin
+					zero_cntr <= zero_cntr + 1;
+					// ha mar eleg nulla jott
+					if(zero_cntr >= 32'd3)//10000)
+					begin
+						valid <= 1'b1;
+						max_value <= 32'd0;
+						state <= 2'd0;
+					end
+				end
 			end
-		end
-end
+		endcase
 
+end
 endmodule
