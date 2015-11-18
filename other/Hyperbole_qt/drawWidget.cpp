@@ -58,7 +58,14 @@ void DrawWidget::paintEvent(QPaintEvent *event)
         painter.drawPoint(p.x() + screen_size.x(), -p.y() + screen_size.y()+200);
     }
 
+    QPen myPen5(Qt::gray, 3, Qt::SolidLine);
 
+    int x = 1, y = 2;
+
+    painter.setPen(myPen5);
+    for(int i =0; i < 500; i++){
+         painter.drawPoint(direction.x*i + screen_size.x() + middle.x, -direction.y*i + screen_size.y()+200 - middle.y);
+    }
 
 }
 
@@ -103,8 +110,9 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
     res_2 = (point*)malloc(sizeof(point)*size);
     res_3 = (point*)malloc(sizeof(point)*size);
 
-
     points.clear();
+
+    calc_triangle_middle(sen_1,sen_2,sen_3,&middle);
 
     calc_hyper(sen_1, sen_2,\
                res_1, size, 0.5,1.005, speed);
@@ -135,6 +143,9 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
                       inter, \
                       size, &num_inter);
 
+    if(num_inter)
+        calc_direction(inter, num_inter, middle, &direction);
+
     for(int i = 0; i < num_inter; i++){
         QPoint* p = new QPoint((int)((inter+i)->x/PRINT_RATIO+0.5),(int)((inter+i)->y/PRINT_RATIO+0.5));
         inter_points.append(*p);
@@ -144,6 +155,8 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
                       size, 1.0, \
                       inter, \
                       size, &num_inter);
+    if(num_inter)
+        calc_direction(inter, num_inter, middle, &direction);
 
     for(int i = 0; i < num_inter; i++){
         QPoint* p = new QPoint((int)((inter+i)->x/PRINT_RATIO+0.5),(int)((inter+i)->y/PRINT_RATIO+0.5));
@@ -155,10 +168,15 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
                       inter,
                       size, &num_inter);
 
+    if(num_inter)
+        calc_direction(inter, num_inter, middle, &direction);
+
     for(int i = 0; i < num_inter; i++){
         QPoint* p = new QPoint((int)((inter+i)->x/PRINT_RATIO+0.5),(int)((inter+i)->y/PRINT_RATIO+0.5));
         inter_points.append(*p);
     }
+
+
 
     repaint();
     return;

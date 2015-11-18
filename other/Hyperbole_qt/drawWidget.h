@@ -18,6 +18,8 @@ public:
     QList<QPoint> points;
     QList<QPoint> sensor_points;
     QList<QPoint> inter_points;
+    point direction;
+    point middle;
 
     void set_size(QPoint size);
     DrawWidget();
