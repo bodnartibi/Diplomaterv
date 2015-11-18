@@ -59,11 +59,11 @@ int is_timestamps_correct(sensor_point s_1, \
     max_dist[2] = high_of_triangle(c,a,b);
 
     // 0: a-b
-    sound_dist[0] = (s_1.time - s_2.time)*sound_speed;
+    sound_dist[0] = (int)(s_1.time - s_2.time)*sound_speed;
     // 1: a-c
-    sound_dist[1] = (s_1.time - s_3.time)*sound_speed;
+    sound_dist[1] = (int)(s_1.time - s_3.time)*sound_speed;
     // 2: b-c
-    sound_dist[2] = (s_2.time - s_3.time)*sound_speed;
+    sound_dist[2] = (int)(s_2.time - s_3.time)*sound_speed;
 
     printf("Distences: \n");
     for (index = 0; index < 3; index++)
