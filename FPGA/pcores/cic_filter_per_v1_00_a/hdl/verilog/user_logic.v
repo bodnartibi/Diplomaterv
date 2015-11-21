@@ -220,7 +220,8 @@ CIC CIC(
 	.clk(Bus2IP_Clk),                  // clock in 50 MHz
 	.rst(!Bus2IP_Resetn),              // reset
 	.clk_div(32'd8),                   // x eseten (x+1)*2 az osztas
-	.comb_num(6'd63),                 // comb's rate
+	//.comb_num(6'd63),                 // comb's rate
+	// 64-es atlagolas fixen
 	.dec_num(8'd5),                    // decimator's rate
 	.data_out(cic_data),               // CIC filter output
 	.data_out_valid(data_out_valid),   // output valid

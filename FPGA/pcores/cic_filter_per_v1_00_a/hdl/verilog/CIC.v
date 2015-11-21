@@ -23,7 +23,7 @@ module CIC(
 	input rst,                  // reset
 	input [31:0] clk_div,       // x eseten (x+1)*2 az osztas
 	
-	input [5:0] comb_num,       // comb's rate
+	//input [5:0] comb_num,       // comb's rate
 	input [7:0] dec_num,       // decimator's rate
 	output reg [31:0] data_out, // CIC filter output
 	output reg data_out_valid,  // output valid
@@ -37,7 +37,6 @@ reg [31:0] integ;
 reg [7:0] dec_cntr;
 reg [31:0] comb [63:0]; // regiszer hossz, regiszter darabszam
 integer i;
-integer j;
 
 reg local_valid;
 reg local_valid_state;
@@ -106,8 +105,8 @@ begin
 		begin
 			integ <= 32'd0;
 			dec_cntr <= 8'd0;
-			for(i = 0; i < 63; i = i+1)
-				comb[i] <= 32'd0;
+			//for(i = 0; i < 63; i = i+1)
+			//	comb[i] <= 32'd0;
 			data_out <= 32'd0;
 			local_valid <= 1'b0;
 		end
@@ -122,18 +121,12 @@ begin
 					//comb
 					comb[0] <= integ;
 					//shift
-					for(i = 1; i < 63; i = i+1)
+					for(i = 1; i < 64; i = i+1)
 					begin
 						comb[i] <= comb[i-1];
 					end
-					//selecting based on comb's rate
-					for(j = 0; j < 63; j = j+1)
-					begin
-						if(comb_num == j)
-						begin
-							data_out <= integ - comb[j];
-						end
-					end
+					//constant 64 div
+					data_out <= integ - comb[63];
 
 					local_valid <= 1'b1;
 					dec_cntr <= 8'd0;
