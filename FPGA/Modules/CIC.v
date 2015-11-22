@@ -21,8 +21,9 @@
 module CIC(
 	input clk,                  // clock in 50 MHz
 	input rst,                  // reset
+	input [31:0] clk_div,       // x eseten (x+1)*2 az osztas
 	
-	input [4:0] comb_num,       // comb's rate
+	input [5:0] comb_num,       // comb's rate
 	input [7:0] dec_num,       // decimator's rate
 	output reg [31:0] data_out, // CIC filter output
 	output reg data_out_valid,  // output valid
@@ -34,7 +35,7 @@ module CIC(
 
 reg [31:0] integ;
 reg [7:0] dec_cntr;
-reg [31:0] comb [31:0]; // regiszer hossz, regiszter darabszam
+reg [31:0] comb [63:0]; // regiszer hossz, regiszter darabszam
 integer i;
 
 reg local_valid;
@@ -45,7 +46,7 @@ reg local_valid_state;
 wire right_channel = 1'b1;
 assign channel = right_channel;
 
-reg [31:0] clk_counter = 31'd0;
+reg [31:0] clk_counter;
 reg clk_div_tc;
 wire clk_out_ris;
 wire clk_out_fall;
@@ -69,7 +70,7 @@ begin
 				begin
 				clk_out <= ~ clk_out;
 				end
-			if(clk_counter == 32'd24)
+			if(clk_counter == clk_div)
 				begin
 				clk_div_tc <= 1'b1;
 				clk_counter <= 32'd0;
@@ -104,8 +105,8 @@ begin
 		begin
 			integ <= 32'd0;
 			dec_cntr <= 8'd0;
-			for(i = 0; i < 32; i = i+1)
-				comb[i] <= 31'd0;
+			for(i = 0; i < 63; i = i+1)
+				comb[i] <= 32'd0;
 			data_out <= 32'd0;
 			local_valid <= 1'b0;
 		end
@@ -120,43 +121,18 @@ begin
 					//comb
 					comb[0] <= integ;
 					//shift
-					for(i = 1; i < 32; i = i+1)
+					for(i = 1; i < 64; i = i+1)
+					begin
 						comb[i] <= comb[i-1];
+					end
 					//selecting based on comb's rate
-					case (comb_num)
-						5'd0 : data_out <= integ - comb[0];
-						5'd1 : data_out <= integ - comb[1];
-						5'd2 : data_out <= integ - comb[2];
-						5'd3 : data_out <= integ - comb[3];
-						5'd4 : data_out <= integ - comb[4];
-						5'd5 : data_out <= integ - comb[5];
-						5'd6 : data_out <= integ - comb[6];
-						5'd7 : data_out <= integ - comb[7];
-						5'd8 : data_out <= integ - comb[8];
-						5'd9 : data_out <= integ - comb[9];
-						5'd10: data_out <= integ - comb[10];
-						5'd11: data_out <= integ - comb[11];
-						5'd12: data_out <= integ - comb[12];
-						5'd13: data_out <= integ - comb[13];
-						5'd14: data_out <= integ - comb[14];
-						5'd15: data_out <= integ - comb[15];
-						5'd16: data_out <= integ - comb[16];
-						5'd17: data_out <= integ - comb[17];
-						5'd18: data_out <= integ - comb[18];
-						5'd19: data_out <= integ - comb[19];
-						5'd20: data_out <= integ - comb[20];
-						5'd21: data_out <= integ - comb[21];
-						5'd22: data_out <= integ - comb[22];
-						5'd23: data_out <= integ - comb[23];
-						5'd24: data_out <= integ - comb[24];
-						5'd25: data_out <= integ - comb[25];
-						5'd26: data_out <= integ - comb[26];
-						5'd27: data_out <= integ - comb[27];
-						5'd28: data_out <= integ - comb[28];
-						5'd29: data_out <= integ - comb[29];
-						5'd30: data_out <= integ - comb[30];
-						5'd31: data_out <= integ - comb[31];
-					endcase
+					for(i = 0; i < 64; i = i+1)
+					begin
+						if(comb_num == i)
+						begin
+							data_out <= integ - comb[i];
+						end
+					end
 
 					local_valid <= 1'b1;
 					dec_cntr <= 8'd0;

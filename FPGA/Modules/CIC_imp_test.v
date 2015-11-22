@@ -27,9 +27,10 @@ module CIC_imp_test;
 	// Inputs
 	reg clk;
 	reg rst;
-	reg [4:0] comb_num;
+	reg [5:0] comb_num;
 	reg [7:0] dec_num;
 	reg data_in;
+	reg [31:0] clk_div;
 
 	// Outputs
 	wire [31:0] data_out;
@@ -41,6 +42,7 @@ module CIC_imp_test;
 	CIC uut (
 		.clk(clk), 
 		.rst(rst), 
+		.clk_div(clk_div),
 		.comb_num(comb_num), 
 		.dec_num(dec_num), 
 		.data_out(data_out), 
@@ -54,9 +56,10 @@ module CIC_imp_test;
 		// Initialize Inputs
 		clk = 0;
 		rst = 0;
-		comb_num = 31;
-		dec_num = 8;
+		comb_num = 3;
+		dec_num = 1;
 		data_in = 0;
+		clk_div = 2;
 
 		// Wait 100 ns for global reset to finish
 		#10;

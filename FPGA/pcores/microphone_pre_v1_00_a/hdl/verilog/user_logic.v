@@ -185,7 +185,7 @@ output                                    IP2Bus_Error;
           slv_reg0 <= 0;
           slv_reg1 <= 0;
 			 //TODO ezt a szûrõfokszámból számolni
-			 high_state <= 32'd200;
+			 high_state <= 32'd260;
         end
       else
         case ( slv_reg_write_sel )
@@ -247,7 +247,7 @@ Threshold threshold(
 	.rst(~Bus2IP_Resetn),
 	.clk(Bus2IP_Clk),
 	.HIGH(high_state),
-	.zero_num(32'd10000),
+	.zero_num(32'd100000),
 	.ack(ack_buffer2timer),
 	.valid(timer_valid_timer2buffer),
 	.detect_time(timer_timer2buffer)
@@ -273,8 +273,8 @@ CIC CIC(
 	.rst(!Bus2IP_Resetn),	// reset
 	.clk_div(32'd8),              // x eseten (x+1)*2 az osztas
 	// TODO, ezek akar allithatoak is lehetnenek
-	.comb_num(6'd63),       // comb's rate
-	.dec_num(8'd5),       // decimator's rate
+	.comb_num(7'd127),       // comb's rate
+	.dec_num(8'd3),       // decimator's rate
 	.data_out(cic_data), // CIC filter output
 	.data_out_valid(cic_data_valid),  // output valid
 	
