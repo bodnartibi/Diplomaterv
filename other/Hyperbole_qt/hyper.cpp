@@ -1,16 +1,14 @@
 #include "hyper.h"
 
-// remove
-#include <stdio.h>
-
-
 int calc_triangle_middle(sensor_point s_1, \
                          sensor_point s_2, \
                          sensor_point s_3, \
                          point* res)
 {
+    // TODO ha nincs neki
     res->x = (s_1.p.x + s_2.p.x + s_3.p.x)/3;
     res->y = (s_1.p.y + s_2.p.y + s_3.p.y)/3;
+    return 1;
 }
 
 int calc_direction(point* inters, \

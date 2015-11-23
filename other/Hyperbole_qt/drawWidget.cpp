@@ -26,7 +26,7 @@ void DrawWidget::paintEvent(QPaintEvent *event)
     QPen myPen3(Qt::black, 1, Qt::SolidLine);
     painter.setPen(myPen3);
 
-    for(int i; i < 2000 ; i++)
+    for(int i=0; i < 2000 ; i++)
     {
         // x tengely
         painter.drawPoint(screen_size.x(), i);
@@ -59,8 +59,6 @@ void DrawWidget::paintEvent(QPaintEvent *event)
     }
 
     QPen myPen5(Qt::gray, 3, Qt::SolidLine);
-
-    int x = 1, y = 2;
 
     painter.setPen(myPen5);
     for(int i =0; i < 500; i++){
@@ -97,9 +95,6 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
 
     sensor_points.append(*s0);
     int num_inter;
-    unsigned int times[3];
-    int t_ready[3] = {0,0,0};
-    int index = 0;
     sensor_points.append(*s1);
     sensor_points.append(*s2);
 
@@ -113,6 +108,8 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
     points.clear();
 
     calc_triangle_middle(sen_1,sen_2,sen_3,&middle);
+
+    is_timestamps_correct(sen_1,sen_2,sen_3,speed);
 
     calc_hyper(sen_1, sen_2,\
                res_1, size, 0.5,1.005, speed);

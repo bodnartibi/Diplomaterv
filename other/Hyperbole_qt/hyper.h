@@ -17,6 +17,7 @@
 // position must be in mm
 
 #include <math.h>
+#include <stdio.h>
 
 typedef struct point_ {
     double x;

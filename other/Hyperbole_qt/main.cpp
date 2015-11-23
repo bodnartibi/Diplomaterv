@@ -14,12 +14,7 @@
 
 int main(int argc, char*argv[]){
 
-	int res;
-    int index;
-
     QPoint* size = new QPoint(700,300);
-
-    QPoint ez[10000];
 
     QList<QPoint> pp;
 	QApplication app(argc, argv);
