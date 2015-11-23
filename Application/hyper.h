@@ -17,6 +17,7 @@
 // position must be in mm
 
 #include <math.h>
+#include <stdio.h>
 
 typedef struct point_ {
     double x;
@@ -28,6 +29,25 @@ typedef struct sensor_point_ {
     unsigned int time;
 }sensor_point;
 
+/*
+ * A haromszog kozeppontjanak meghatarozasa
+ */
+
+int calc_triangle_middle(sensor_point s_1, \
+                         sensor_point s_2, \
+                         sensor_point s_3, \
+                         point* res);
+
+/*
+ * A szenzorok altal kozrefogott haromszog
+ * kozeppontjabol a metszespontok iranyaba
+ * mutato egysegvektor meghatarozasa
+ */
+
+int calc_direction(point* inters, \
+                   int length, \
+                   point middle, \
+                   point* res);
 
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \
@@ -46,3 +66,4 @@ int calc_intersection(point* line_1, \
                       int num_max_results, int* num_found_results);
 
 #endif // HYPER_H
+

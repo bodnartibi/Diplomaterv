@@ -1,18 +1,50 @@
 #include "hyper.h"
 
-// remove
-#include <stdio.h>
+int calc_triangle_middle(sensor_point s_1, \
+                         sensor_point s_2, \
+                         sensor_point s_3, \
+                         point* res)
+{
+    // TODO ha nincs neki
+    res->x = (s_1.p.x + s_2.p.x + s_3.p.x)/3;
+    res->y = (s_1.p.y + s_2.p.y + s_3.p.y)/3;
+    return 1;
+}
+
+int calc_direction(point* inters, \
+                   int length, \
+                   point middle, \
+                   point* res)
+{
+    int x_sum = 0;
+    int y_sum = 0;
+    double vector_size;
+    int index;
+
+    for(index = 0; index < length; index++)
+    {
+        x_sum += (inters + index)->x - middle.x;
+        y_sum += (inters + index)->y - middle.y;
+    }
+
+    vector_size = sqrt(pow(x_sum,2)+pow(y_sum,2));
+    res->x = (x_sum / vector_size);// + middle.x;
+    res->y = (y_sum / vector_size);// + middle.y;
+
+    return 0;
+}
+
+
 
 /*
-Koszinusz tetellel ki kell szamolnunk a haromszog egy pontjahoz tartozo szoget,
-majd azzal kiszamolnunk a magassagat ahhoz a ponthoz.
-A magassagnal nem lehet nagyobb a hang altal megtett ut.
-C csucsra:
-c2=a2+b2-2abcos(gamma)
-A nal h = b*sinc = c*sinb
-C nel h = a*sinb = b*sina
+ * Koszinusz tetellel ki kell szamolnunk a haromszog egy pontjahoz tartozo szoget,
+ * majd azzal kiszamolnunk a magassagat ahhoz a ponthoz.
+ * A magassagnal nem lehet nagyobb a hang altal megtett ut.
+ * C csucsra:
+ * c2=a2+b2-2abcos(gamma)
+ * A nal h = b*sinc = c*sinb
+ * C nel h = a*sinb = b*sina
 */
-
 
 // Az "a" hosszu oldalra huzott magassagot adja vissza
 double high_of_triangle(double a, double b, double c)
@@ -274,3 +306,4 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
     }
 
 }
+
