@@ -21,7 +21,7 @@
 module CIC(
 	input clk,                  // clock in 50 MHz
 	input rst,                  // reset
-	input [31:0] clk_div,       // x eseten (x+1)*2 az osztas
+	input [4:0] clk_div,       // x eseten (x+1)*2 az osztas
 	
 	//input [5:0] comb_num,       // comb's rate
 	input [7:0] dec_num,       // decimator's rate
@@ -33,9 +33,9 @@ module CIC(
 	input data_in               // data from the microphone (based on clok_out)
    );
 
-reg [31:0] integ;
+reg [23:0] integ;
 reg [7:0] dec_cntr;
-reg [31:0] comb [63:0]; // regiszer hossz, regiszter darabszam
+reg [24:0] comb [127:0]; // regiszer hossz, regiszter darabszam
 integer i;
 
 reg local_valid;
@@ -46,7 +46,7 @@ reg local_valid_state;
 wire right_channel = 1'b1;
 assign channel = right_channel;
 
-reg [31:0] clk_counter;
+reg [4:0] clk_counter;
 reg clk_div_tc;
 wire clk_out_ris;
 wire clk_out_fall;
@@ -58,7 +58,7 @@ always @(posedge clk)
 begin
 	if (rst)
 		begin
-			clk_counter <= 32'd0;
+			clk_counter <= 5'd0;
 			clk_out <= 1'b1;
 			clk_div_tc <= 1'b1;
 			local_valid_state <= 1'b0;
@@ -73,7 +73,7 @@ begin
 			if(clk_counter == clk_div)
 				begin
 				clk_div_tc <= 1'b1;
-				clk_counter <= 32'd0;
+				clk_counter <= 5'd0;
 				end
 			else
 				begin
@@ -103,10 +103,10 @@ begin
 
 	if(rst)
 		begin
-			integ <= 32'd0;
+			integ <= 24'd0;
 			dec_cntr <= 8'd0;
-			//for(i = 0; i < 63; i = i+1)
-			//	comb[i] <= 32'd0;
+			for(i = 0; i < 63; i = i+1)
+				comb[i] <= 32'd0;
 			data_out <= 32'd0;
 			local_valid <= 1'b0;
 		end
@@ -121,12 +121,12 @@ begin
 					//comb
 					comb[0] <= integ;
 					//shift
-					for(i = 1; i < 64; i = i+1)
+					for(i = 1; i < 128; i = i+1)
 					begin
 						comb[i] <= comb[i-1];
 					end
-					//constant 64 div
-					data_out <= integ - comb[63];
+					//constant 127 div
+					data_out <= {8'd8, integ - comb[127]};
 
 					local_valid <= 1'b1;
 					dec_cntr <= 8'd0;

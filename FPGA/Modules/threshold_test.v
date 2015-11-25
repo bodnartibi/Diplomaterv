@@ -32,6 +32,7 @@ module threshold_test;
 	reg [31:0] HIGH;
 	reg [31:0] LOW;
 	reg ack;
+	reg [31:0] zero_num;
 
 	// Outputs
 	wire valid;
@@ -44,11 +45,12 @@ module threshold_test;
 		.rst(rst), 
 		.clk(clk), 
 		.HIGH(HIGH), 
-		.LOW(LOW), 
+		.zero_num(zero_num), 
 		.ack(ack), 
 		.valid(valid), 
 		.detect_time(detect_time)
 	);
+	
 
 	task value(input [31:0] cntr_);
 	begin
@@ -70,6 +72,7 @@ module threshold_test;
 		HIGH = 32'd150;
 		LOW = 0;
 		ack = 0;
+		zero_num = 32'd3;
 
 		// Wait 100 ns for global reset to finish
 		#10;
@@ -88,6 +91,10 @@ module threshold_test;
 		value(32'd0);
 		value(32'd0);
 		value(32'd0);
+		#2
+		ack = 1;
+		#2
+		ack = 0;
 		value(32'd160);
 		value(32'd170);
 		value(32'd180);

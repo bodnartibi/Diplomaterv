@@ -219,7 +219,7 @@ assign IP2Bus_Data = (slv_read_ack == 1'b1) ? slv_ip2bus_data :  0 ;
 CIC CIC(
 	.clk(Bus2IP_Clk),                  // clock in 50 MHz
 	.rst(!Bus2IP_Resetn),              // reset
-	.clk_div(32'd8),                   // x eseten (x+1)*2 az osztas
+	.clk_div(5'd7),                   // x eseten (x+1)*2 az osztas
 	//.comb_num(6'd63),                 // comb's rate
 	// 64-es atlagolas fixen
 	.dec_num(8'd5),                    // decimator's rate
