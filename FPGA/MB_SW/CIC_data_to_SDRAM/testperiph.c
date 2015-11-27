@@ -34,7 +34,8 @@
 #include "uartlite_header.h"
 
 
-#define HIGH_STATE 200
+#define HIGH_1 395
+#define HIGH_2 405
 #define MEM_SLOT_SIZE 0xFFFFF // 1MByte
 #define SAFETY_OFFSET 0x10000 //
 
@@ -100,13 +101,13 @@ int main()
 
    // Waiting for first valid value
    while(1){
-       if(*cic_status_p[0] && (*cic_data_p[0] > HIGH_STATE)){
+       if(*cic_status_p[0] && (*cic_data_p[0] > HIGH_1)){
            break;
        }
-       if(*cic_status_p[1] && (*cic_data_p[1] > HIGH_STATE)){
+       if(*cic_status_p[1] && (*cic_data_p[1] > HIGH_1)){
            break;
        }
-       if(*cic_status_p[2] && (*cic_data_p[2] > HIGH_STATE)){
+       if(*cic_status_p[2] && (*cic_data_p[2] > HIGH_1)){
            break;
        }
    }
@@ -148,7 +149,7 @@ int main()
 			   end_mem_p[i] = act_mem_p[i];
 			   break;
 		   }
-		   if(*act_mem_p[i] < HIGH_STATE){
+		   if(*act_mem_p[i] < HIGH_2){
 			   num[i]++;
 		   } else {
 			   num[i] = 0;
