@@ -80,16 +80,15 @@ void* worker_fn(void* arg){
 */
     cross_threshold = 0.01;
     while(1) {
-      cross_threshold = cross_threshold + 1;
       calc_intersection(res_1, \
                         res_2, \
                         size, cross_threshold, \
                         inter, \
                         size, &num_inter);
-      printf("%d point find, thres: %f \n", num_inter, cross_threshold);
+      printf("%d points were found, radius: %f \n", num_inter, cross_threshold);
 
-      if(num_inter == 0)
-        continue;
+      if(num_inter > 0)
+        break;
 // eles ket hiperbola metszespontjat keresni
 /*
       calc_intersection(res_2, \
@@ -100,8 +99,8 @@ void* worker_fn(void* arg){
 
       printf("%d point find, thres: %f \n", num_inter, cross_threshold);
 
-      if(num_inter == 0)
-        continue;
+      if(num_inter > 0)
+        break;
 
       calc_intersection(res_1, \
                         res_3, \
@@ -111,13 +110,13 @@ void* worker_fn(void* arg){
 
       printf("%d point find, thres: %f \n", num_inter, cross_threshold);
 
-      if(num_inter == 0)
-        continue;
+      if(num_inter > 0)
+        break;
 */
-      break;
+      cross_threshold = cross_threshold + 1;
     }
 
-    printf("Intersections: %d \n", num_inter);
+    printf("Intersections: \n");
     for(index = 0; index < num_inter; index++){
       printf(" %d %d \n", (int)((inter +index)->x+0.5), (int)((inter +index)->y+0.5));
     }
