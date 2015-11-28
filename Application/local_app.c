@@ -27,6 +27,7 @@ int main(int argc, char* argv[]){
   int len;
   int fdix;
   unsigned int times[3];
+  int ret;
 
   fd_set watchset;
   fd_set inset;
@@ -82,21 +83,25 @@ int main(int argc, char* argv[]){
   while(1){
 
     inset = watchset;
-    if(select(maxfd + 1, &inset, NULL, NULL, NULL) < 0){
+    ret = select(maxfd + 1, &inset, NULL, NULL, NULL);
+    if (ret < 0){
       perror("select");
       return EXIT_FAILURE;
     }
-    // TODO fajl lezarast le kell kezelni!!
 
     for (index = 0; index < 3; index++){
       if(FD_ISSET(fd_mics[index], &inset)){
         len = read(fd_mics[index], buf, sizeof(buf));
-        // itt hibanak vesszuk ha nincs mit kiolvasni, hiszen ugy tudjuk h van
+        // Itt hibanak vesszuk ha nincs mit kiolvasni, hiszen ugy tudjuk h van
         if(len < 0){
           perror("read");
           return EXIT_FAILURE;
         }
-        memcpy(&times[index], buf, sizeof(times[0]));
+        if(len == 0){
+          printf("File was closed, exiting\n");
+          return 0;
+        }
+        memcpy((void*)&times[index], (void*)buf, sizeof(times[index]));
         printf("Read value mic %d reg: hex %x dec %u\n",index + 1, times[index], times[index]);
 
         list_add_time(index, times[index]);
@@ -106,9 +111,6 @@ int main(int argc, char* argv[]){
         pthread_mutex_unlock(&mutex_common);
       }
     }
-
-
-    //TODO close files
 
   }
 

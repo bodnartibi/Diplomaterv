@@ -73,15 +73,15 @@ DECLARE_WAIT_QUEUE_HEAD(wq2);
 static void work_fn(struct work_struct* work) {
   printk(KERN_INFO "work_fn: called\n");
   if (reg_ready[0]) {
-    printk(KERN_INFO "Reg 0 new value: %x\n",reg[0]);
+    printk(KERN_INFO "Reg 0 new value: %x -- %d\n", reg[0], reg[0]);
     wake_up(&wq0);
   }
   if (reg_ready[1]) {
-    printk(KERN_INFO "Reg 1 new value: %x\n",reg[1]);
+    printk(KERN_INFO "Reg 1 new value: %x -- %d\n", reg[1], reg[1]);
     wake_up(&wq1);
   }
   if (reg_ready[2]) {
-    printk(KERN_INFO "Reg 2 new value: %x\n",reg[2]);
+    printk(KERN_INFO "Reg 2 new value: %x -- %d\n", reg[2], reg[2]);
     wake_up(&wq2);
   }
 }

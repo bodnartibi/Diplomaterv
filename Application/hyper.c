@@ -57,6 +57,9 @@ double high_of_triangle(double a, double b, double c)
     return b*sin(gamma);
 }
 
+#if 0
+// Az erosebb ellenorzes, a szenzorpontokkon belul elhelyezkedo forrasra
+
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \
                           sensor_point s_3, \
@@ -112,7 +115,40 @@ int is_timestamps_correct(sensor_point s_1, \
 
     return 1;
 }
+#endif
 
+int is_timestamps_correct(sensor_point s_1, \
+                          sensor_point s_2, \
+                          sensor_point s_3, \
+                          double sound_speed)
+{
+    int index;
+    double sound_dist[3];
+    double max_dist[3];
+    double a,b,c;
+
+    max_dist[0] = sqrt(pow(s_1.p.x - s_2.p.x, 2.0) + pow(s_1.p.y - s_2.p.y, 2.0));
+    max_dist[1] = sqrt(pow(s_1.p.x - s_3.p.x, 2.0) + pow(s_1.p.y - s_3.p.y, 2.0));
+    max_dist[2] = sqrt(pow(s_2.p.x - s_3.p.x, 2.0) + pow(s_2.p.y - s_3.p.y, 2.0));
+
+    sound_dist[0] = abs((int)(s_1.time - s_2.time)*sound_speed);
+    sound_dist[1] = abs((int)(s_1.time - s_3.time)*sound_speed);
+    sound_dist[2] = abs((int)(s_2.time - s_3.time)*sound_speed);
+
+    printf("Distences: \n");
+    for (index = 0; index < 3; index++)
+    {
+        printf("Max %f - sound %f\n", max_dist[index],sound_dist[index]);
+    }
+
+    if(sound_dist[0] > max_dist[0] || sound_dist[1] > max_dist[1] || \
+       sound_dist[2] > max_dist[2] )
+    {
+        return 0;
+    }
+
+    return 1;
+}
 
 int calc_intersection(point* line_1, \
                       point* line_2, \
@@ -306,4 +342,3 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
     }
 
 }
-
