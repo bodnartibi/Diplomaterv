@@ -11,7 +11,7 @@ void* worker_fn(void* arg){
   point direction;
 
   int num_inter;
-  int size = 1000;
+  int size = 2000;
   unsigned int times[3];
   int t_ready[3] = {0,0,0};
   int index = 0;
