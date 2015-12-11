@@ -88,10 +88,10 @@ parameter C_SLV_DWIDTH                   = 32;
 
 // -- ADD USER PORTS BELOW THIS LINE -----------------
 // --USER ports added here 
-	output channel;
-	output clk_out;
-	input data_in;
-	output INT;
+  output channel;
+  output clk_out;
+  input data_in;
+  output INT;
 // -- ADD USER PORTS ABOVE THIS LINE -----------------
 
 // -- DO NOT EDIT BELOW THIS LINE --------------------
@@ -114,8 +114,6 @@ output                                    IP2Bus_Error;
 
   // --USER nets declarations added here, as needed for user logic
 
-
-
   // Nets for user logic slave model s/w accessible register example
   reg        [C_SLV_DWIDTH-1 : 0]           slv_reg0;
   reg        [C_SLV_DWIDTH-1 : 0]           slv_reg1;
@@ -129,27 +127,31 @@ output                                    IP2Bus_Error;
   integer                                   byte_index, bit_index;
 
   // USER logic implementation added here
-	//modulok osszekotesere
-	
+  //modulok osszekotesere
+  
   // CIC - threashold
-	wire [31:0] cic_data;
+  wire [31:0] cic_data;
   wire cic_data_valid;
 
   // CIC external ports
-	wire channel; 
+  wire channel; 
   wire clk_out;
   wire data_in;
 
-	wire timer_valid_timer2buffer;
-	wire [31:0] timer_timer2buffer;
-	wire ack_buffer2timer;
-	wire INT;
-	
-	wire [31:0] data_out;
-	wire full, empty;
-	wire [5:0] data_count;
-	
-	reg [31:0] high_state;
+  wire timer_valid_threshold2fifo;
+  wire [31:0] timer_data_threshold2fifo;
+  wire ack_fifo2threshold;
+  wire INT;
+  wire read_2fifo;
+  
+  wire [31:0] data_out;
+  wire full, empty;
+  wire [5:0] data_count;
+  
+  reg [31:0] high_state;
+
+  wire [7:0] dec_num;
+  wire [6:0] comb_num;
   // ------------------------------------------------------
   // Example code to read/write user logic slave model s/w accessible registers
   // 
@@ -175,8 +177,10 @@ output                                    IP2Bus_Error;
     slv_write_ack     = Bus2IP_WrCE[0] || Bus2IP_WrCE[1] || Bus2IP_WrCE[2] || Bus2IP_WrCE[3],
     slv_read_ack      = Bus2IP_RdCE[0] || Bus2IP_RdCE[1] || Bus2IP_RdCE[2] || Bus2IP_RdCE[3];
 
-// CLK 50Mhz
-
+  // Szuro beallitasai
+  assign dec_num = 8'd5;
+  assign comb_num = 7'd31;
+  
   // implement slave model register(s)
   always @( posedge Bus2IP_Clk )
     begin
@@ -184,33 +188,31 @@ output                                    IP2Bus_Error;
         begin
           slv_reg0 <= 0;
           slv_reg1 <= 0;
-			 //TODO ezt a szûrõfokszámból számolni
-			 high_state <= 32'd260;
+          high_state <= 32'd100;
         end
       else
         case ( slv_reg_write_sel )
-		    // reg 0 write: HIGH state
+        // Az elso regiszter irasakor a magas allapot erteket valtoztatjuk
           4'b1000 :
             for ( byte_index = 0; byte_index <= (C_SLV_DWIDTH/8)-1; byte_index = byte_index+1 )
               if ( Bus2IP_BE[byte_index] == 1 )
                 high_state[(byte_index*8) +: 8] <= Bus2IP_Data[(byte_index*8) +: 8];
-		    // reg 1 write: LOW state
           4'b0100 :
             for ( byte_index = 0; byte_index <= (C_SLV_DWIDTH/8)-1; byte_index = byte_index+1 )
               if ( Bus2IP_BE[byte_index] == 1 )
                 slv_reg1[(byte_index*8) +: 8] <= Bus2IP_Data[(byte_index*8) +: 8];
-			 4'b0010 :
+          4'b0010 :
             for ( byte_index = 0; byte_index <= (C_SLV_DWIDTH/8)-1; byte_index = byte_index+1 )
               if ( Bus2IP_BE[byte_index] == 1 )
                 slv_reg2[(byte_index*8) +: 8] <= Bus2IP_Data[(byte_index*8) +: 8];
-			 4'b0001 :
+          4'b0001 :
             for ( byte_index = 0; byte_index <= (C_SLV_DWIDTH/8)-1; byte_index = byte_index+1 )
               if ( Bus2IP_BE[byte_index] == 1 )
                 slv_reg3[(byte_index*8) +: 8] <= Bus2IP_Data[(byte_index*8) +: 8];
           default : begin
             slv_reg0 <= slv_reg0;
             slv_reg1 <= slv_reg1;
-				slv_reg2 <= slv_reg2;
+            slv_reg2 <= slv_reg2;
             slv_reg3 <= slv_reg3;
                     end
         endcase
@@ -224,7 +226,7 @@ output                                    IP2Bus_Error;
       case ( slv_reg_read_sel )
         4'b1000 : slv_ip2bus_data <= data_out;
         4'b0100 : slv_ip2bus_data <= data_out;
-		  4'b0010 : slv_ip2bus_data <= data_out;
+        4'b0010 : slv_ip2bus_data <= data_out;
         4'b0001 : slv_ip2bus_data <= data_out;
         default : slv_ip2bus_data <= 0;
       endcase
@@ -235,51 +237,53 @@ output                                    IP2Bus_Error;
   // Example code to drive IP to Bus signals
   // ------------------------------------------------------------
 
-assign IP2Bus_Data = (slv_read_ack == 1'b1) ? slv_ip2bus_data :  0 ;
+  assign IP2Bus_Data = (slv_read_ack == 1'b1) ? slv_ip2bus_data :  0 ;
   assign IP2Bus_WrAck = slv_write_ack;
-  //assign IP2Bus_RdAck = slv_read_ack;
   assign IP2Bus_Error = 0;
+  
+  // Ha van adat a FIFO-ban, megszakitast generalunk
   assign INT = (data_count > 6'd0);
+  // Az elso regiszterbol olvasas keres
+  assign read_2fifo = (slv_reg_read_sel == 4'b1000);
 
 Threshold threshold(
-	.data(cic_data),
-	.data_valid(cic_data_valid),
-	.rst(~Bus2IP_Resetn),
-	.clk(Bus2IP_Clk),
-	.HIGH(high_state),
-	.zero_num(32'd100000),
-	.ack(ack_buffer2timer),
-	.valid(timer_valid_timer2buffer),
-	.detect_time(timer_timer2buffer)
+  .data(cic_data),
+  .data_valid(cic_data_valid),
+  .rst(~Bus2IP_Resetn),
+  .clk(Bus2IP_Clk),
+  .HIGH(high_state),
+  .zero_num(32'd100000),
+  .ack(ack_fifo2threshold),
+  .valid(timer_valid_threshold2fifo),
+  .detect_time(timer_data_threshold2fifo)
 );
 
 fifo_generator_v9_3 fifo(
   .clk(Bus2IP_Clk),
   .srst(~Bus2IP_Resetn),
-  .din(timer_timer2buffer),
-  .wr_en(timer_valid_timer2buffer),
-  // TODO szebben
-  .rd_en(slv_reg_read_sel == 4'b1000),
+  .din(timer_data_threshold2fifo),
+  .wr_en(timer_valid_threshold2fifo),
+  .rd_en(read_2fifo),
   .dout(data_out),
   .full(full),
-  .wr_ack(ack_buffer2timer),
+  .wr_ack(ack_fifo2threshold),
   .empty(empty),
+  // A busz kiolvashatja az adatot
   .valid(IP2Bus_RdAck),
   .data_count(data_count)
 );
 
 CIC CIC(
-	.clk(Bus2IP_Clk),                  // clock in 50 MHz
-	.rst(!Bus2IP_Resetn),	// reset
-	.clk_div(32'd8),              // x eseten (x+1)*2 az osztas
-	// TODO, ezek akar allithatoak is lehetnenek
-	.comb_num(7'd127),       // comb's rate
-	.dec_num(8'd3),       // decimator's rate
-	.data_out(cic_data), // CIC filter output
-	.data_out_valid(cic_data_valid),  // output valid
-	
-	.channel(channel),             // 
-	.clk_out(clk_out),         // clock to microphone 1 MHz
-	.data_in(data_in)               // data from the microphone (based on clok_out)
+  .clk(Bus2IP_Clk),                  // clock in 50 MHz
+  .rst(!Bus2IP_Resetn),              // reset
+  .clk_div(32'd7),                   // x eseten (x+1)*2 az osztas
+  .comb_num(comb_num),               // comb's rate
+  .dec_num(dec_num),                 // decimator's rate
+  .data_out(cic_data),               // CIC filter output
+  .data_out_valid(cic_data_valid),   // output valid
+  .channel(channel),                 // channel
+  .clk_out(clk_out),                 // clock to microphone 1 MHz
+  .data_in(data_in)                  // data from the microphone (based on clok_out)
    );
+
 endmodule
