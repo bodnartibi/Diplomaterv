@@ -3,8 +3,7 @@
 int calc_triangle_middle(sensor_point s_1, \
                          sensor_point s_2, \
                          sensor_point s_3, \
-                         point* res)
-{
+                         point* res) {
     // TODO ha nincs neki
     res->x = (s_1.p.x + s_2.p.x + s_3.p.x)/3;
     res->y = (s_1.p.y + s_2.p.y + s_3.p.y)/3;
@@ -14,15 +13,13 @@ int calc_triangle_middle(sensor_point s_1, \
 int calc_direction(point* inters, \
                    int length, \
                    point middle, \
-                   point* res)
-{
+                   point* res) {
     int x_sum = 0;
     int y_sum = 0;
     double vector_size;
     int index;
 
-    for(index = 0; index < length; index++)
-    {
+    for(index = 0; index < length; index++) {
         x_sum += (inters + index)->x - middle.x;
         y_sum += (inters + index)->y - middle.y;
     }
@@ -47,8 +44,7 @@ int calc_direction(point* inters, \
 */
 
 // Az "a" hosszu oldalra huzott magassagot adja vissza
-double high_of_triangle(double a, double b, double c)
-{
+double high_of_triangle(double a, double b, double c) {
     double gamma;
     double cosgamma;
     // cosG = (-c2+a2+b2)/2ab
@@ -63,8 +59,7 @@ double high_of_triangle(double a, double b, double c)
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \
                           sensor_point s_3, \
-                          double sound_speed)
-{
+                          double sound_speed) {
     int index;
     double sound_dist[3];
     double max_dist[3];
@@ -101,15 +96,13 @@ int is_timestamps_correct(sensor_point s_1, \
     sound_dist[2] = (int)(s_2.time - s_3.time)*sound_speed;
 
     printf("Distences: \n");
-    for (index = 0; index < 3; index++)
-    {
+    for (index = 0; index < 3; index++) {
         printf("Max %f sound %f\n", max_dist[index],sound_dist[index]);
     }
 
     if(sound_dist[0] > max_dist[0] || sound_dist[1] > max_dist[0] || \
        sound_dist[0] > max_dist[1] || sound_dist[2] > max_dist[1] || \
-       sound_dist[1] > max_dist[2] || sound_dist[2] > max_dist[2] )
-    {
+       sound_dist[1] > max_dist[2] || sound_dist[2] > max_dist[2] ) {
         return 0;
     }
 
@@ -120,8 +113,7 @@ int is_timestamps_correct(sensor_point s_1, \
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \
                           sensor_point s_3, \
-                          double sound_speed)
-{
+                          double sound_speed) {
     int index;
     double sound_dist[3];
     double max_dist[3];
@@ -136,14 +128,12 @@ int is_timestamps_correct(sensor_point s_1, \
     sound_dist[2] = abs((int)(s_2.time - s_3.time)*sound_speed);
 
     printf("Distences: \n");
-    for (index = 0; index < 3; index++)
-    {
+    for (index = 0; index < 3; index++) {
         printf("Max %f - sound %f\n", max_dist[index],sound_dist[index]);
     }
 
     if(sound_dist[0] > max_dist[0] || sound_dist[1] > max_dist[1] || \
-       sound_dist[2] > max_dist[2] )
-    {
+       sound_dist[2] > max_dist[2] ) {
         return 0;
     }
 
@@ -154,37 +144,30 @@ int calc_intersection(point* line_1, \
                       point* line_2, \
                       int length, double radius, \
                       point* res, \
-                      int num_max_results, int* num_found_results)
-{
+                      int num_max_results, int* num_found_results) {
     int i,j;
     double distance;
     int res_num;
 
     res_num = 0;
-    for(i = 0; i < length; i++)
-    {
-        for(j = 0; j < length; j++)
-        {
+    for(i = 0; i < length; i++) {
+        for(j = 0; j < length; j++) {
             distance = sqrt(pow((line_1 + i)->x - (line_2 + j)->x, 2.0) + \
                             pow((line_1 + i)->y - (line_2 + j)->y, 2.0));
-            if(distance < radius)
-            {
+            if(distance < radius) {
                 // ket pont felezopontjat adjuk meg eredmenynek
                 (res + res_num)->x = ((line_1 + i)->x + (line_2 + j)->x)/2;
                 (res + res_num)->y = ((line_1 + i)->y + (line_2 + j)->y)/2;
 
                 res_num ++;
 
-                if(res_num >= num_max_results)
-                {
+                if(res_num >= num_max_results) {
                     break;
                 }
-
             }
         }
 
-        if(res_num >= num_max_results)
-        {
+        if(res_num >= num_max_results) {
             break;
         }
     }
@@ -199,8 +182,7 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
                 point* res, int res_length, \
                 double step, double gain, \
                 double sound_speed
-                )
-{
+                ) {
     // ket szenzor tavolsaga
     double distance;
     // felezopont koordinatai
@@ -237,14 +219,9 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
     // ciklus index
     int index;
 
-    // regiszter tulcsordulasa nem okoz problemat
-    // 1 - UINT_MAX = 2
     // kell a 2-es osztas, mert minden lepes a kozeppontol az egyik pont fele
     // ketszeresere noveli a tavolsagkulonbseget
     sound_distance = (int)(sensor_1.time - sensor_2.time)*(sound_speed)/2;
-
-    //    sound_distance = (sensor_2.time - sensor_1.time)*sound_speed;
-    //TODO függnek a dolgok az idokvantumtol (ms, ns)
 
     // a ket szenzor tavolsagat
     distance = sqrt(pow(sensor_1.p.x - sensor_2.p.x, 2.0) + pow(sensor_1.p.y - sensor_2.p.y, 2.0));
@@ -261,10 +238,8 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
     angle = atan2(vec.y, vec.x) - atan2(0,1);
     // hiperbola kiszamitasa
 
-    //TODO meddigmenjen a ciklus
-
     a = (distance)/2.0 - sound_distance;
-    for(index = 0; index < res_length; ){
+    for(index = 0; index < res_length; ) {
 
         // a kozelebbi szenzotrol "a" a tavolsag
         // a tavolabbitol a + dd
@@ -284,8 +259,7 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
         // a pont koordinatai
 
         // ha cosfi not a number
-        if(cosfi != cosfi)
-        {
+        if(cosfi != cosfi) {
             x = middle.x + s;
             y = middle.y + s;
             (res + index)->x = x;
@@ -338,7 +312,5 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
         // lepeskoz
         a += step;
         step = step * gain;
-
     }
-
 }

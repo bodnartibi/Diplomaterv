@@ -1,4 +1,5 @@
 #!/bin/bash
+XLNX_DIR="/home/etibbod/dipterv/linux-xlnx"
 
-/media/tibor/nem_a_c/LINUX/linux-xlnx/scripts/dtc/dtc -I dts -O dtb -o ./devicetree.dtb ./my_device_tree.dts 
+$XLNX_DIR/scripts/dtc/dtc -I dts -O dtb -o ./devicetree.dtb ./my_device_tree.dts 
 

@@ -1,29 +1,45 @@
-/* Kernel Programming */
+/*
+ *  mic_driver.c
+ *
+ *  Mikrofon periferia meghajto
+ *  Diplomatervezes 2015
+ *
+ *  Author: Bodnar Tibor <piratetibi@gmail.com>
+ *
+ *  2015
+ */
+
 #define LINUX
 
-#include <linux/module.h>  /* Needed by all modules */
-#include <linux/kernel.h>  /* Needed for KERN_ALERT */
-#include <linux/init.h>
-//#include <linux/config.h>
 #include <linux/module.h>
-#include <linux/kernel.h> /* printk() */
-#include <linux/slab.h> /* kmalloc() */
-#include <linux/fs.h> /* everything... */
-#include <linux/errno.h> /* error codes */
-#include <linux/types.h> /* size_t */
-#include <linux/fcntl.h> /* O_ACCMODE */
-#include <asm/uaccess.h> /* copy_from/to_user */
+#include <linux/kernel.h>
+#include <linux/init.h>
+
+#include <linux/slab.h>
+#include <linux/fs.h>
+#include <linux/errno.h>
+#include <linux/types.h>
+#include <linux/fcntl.h>
+#include <asm/uaccess.h>
 #include <linux/platform_device.h>
 #include <asm/io.h>
 #include <linux/io.h>
-#include <linux/interrupt.h> /*interrupt*/
+#include <linux/interrupt.h>
 #include <linux/poll.h>
 #include <linux/sched.h>
 #include <linux/workqueue.h>
 
 // 4 byte adatot tudunk irni
-#define BUFF_SIZE 5
+#define BUFF_SIZE 4
 
+#define CLASS_NAME "Microphones_class"
+#define PLATFORM_DRIVER_NAME "FPGA_registers"
+#define DEVICE_NAME "Microphones_device"
+
+// A string, ami alapjan a device-tree-ben keresunk
+#define COMPATIBLE_STRING "Microphones"
+
+// Beregisztralando fajlmuveletek
 int reg_open(struct inode *inode, struct file *filep);
 int reg_release(struct inode *inode, struct file *filep);
 static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_pos);
@@ -31,31 +47,32 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 unsigned int reg_poll(struct file *filp, poll_table *wait);
 static void work_fn(struct work_struct* work);
 
-//Global
+//Globalis valtozok
 
-// Felul fogjuk irni
+// A major szamot felul fogjuk irni
 int registers_major = 200;
+// A harom regiszter
 int reg[3] = {0,0,0};
 char *input_buffer;
+// A harom periferia lekepzett cimei
 void *registers_addr[3];
 // platform_get_resource visszateresi ertekeneinek
 struct resource *resource_mem[3];
 int IRQ[3] = {0,0,0};
 unsigned long remap_size[3];
 int reg_ready[3] = {0,0,0};
-
-#define CLASS_NAME "FPGA_registers"
 static struct class* regs_class;
 
 // File-ok nevei
 const char* file_names[] = { "Mic_1_reg", "Mic_2_reg", "Mic_3_reg" };
 // Memoria regiok nevei
-const char* mem_region_names[] = { "FPGA_MIC_1", "FPGA_MIC_2", "FPGA_MIC_3" };
+const char* mem_region_names[] = { "MIC_1", "MIC_2", "MIC_3" };
 // Irq nevek
-const char* irq_names[] = { "my_FPGA_IRQ1", "my_FPGA_IRQ2", "my_FPGA_IRQ3" };
+const char* irq_names[] = { "MIC_1_IRQ", "MIC_2_IRQ", "MIC_3_IRQ" };
 
 static struct workqueue_struct* workQ;
-// kulon taskok kellenek, mivel ha egy task a queueban van, azt nem rakjuk be ismet
+// Kulon taskok kellenek,
+// mivel ha egy task a queueban van, azt nem rakjuk be ismet
 static struct work_struct task[3];
 
 struct file_operations reg_fops = {
@@ -71,7 +88,8 @@ DECLARE_WAIT_QUEUE_HEAD(wq1);
 DECLARE_WAIT_QUEUE_HEAD(wq2);
 
 static void work_fn(struct work_struct* work) {
-  
+  // Ha valamelyik regiszterben uj adat szerepel,
+  // a hozza tartozo fajlnak jelezzuk, hogy a poll visszaterhet
   if (reg_ready[0]) {
     printk(KERN_INFO "Reg 0 new value: %x -- %u\n", reg[0], reg[0]);
     wake_up(&wq0);
@@ -133,10 +151,11 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
 
   minor = MINOR(filep->f_dentry->d_inode->i_rdev);
   // Magat a regisztert csak egyszer akarjuk kiolvasni egy fajlmuvelet alatt,
-  // igy a msodik korben mar koran visszaterunk, ay olvasas elott
-  // poll eseten nem akarjuk, hogy 0-val terjunk vissza, mert akkor lezarul az
-  // olvasas. Ezert ha reg_ready van, azaz az interrupt miatt van olvasas,
-  // akkor nem terunk vissza
+  // igy a masodik korben mar koran visszaterunk.
+  // Az olvasas elott poll eseten nem akarjuk,
+  // hogy 0-val terjunk vissza, mert akkor lezarul a fajl,
+  // ezert ha reg_ready van, azaz az interrupt miatt olvasunk,
+  // akkor nem terunk vissza.
   if (*f_pos != 0 && !reg_ready[minor]) {
     return 0;
   }
@@ -146,7 +165,6 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
   // minor 3: mic 2
   reg_value = reg[minor];
 
-  //printk(KERN_INFO "read from address %x: %x\n", (unsigned int)registers_addr[minor], reg_value);
   copy_to_user(buf, &reg_value, sizeof(reg_value));
 
   reg_ready[minor] = 0;
@@ -164,8 +182,6 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
   minor = MINOR(filep->f_dentry->d_inode->i_rdev);
 
   // 32 bit (4 byte) adatot tudunk egyszerre irni
-  // felkeszulunk arra, hogy egy stringet kapunk (+1)
-  // mindenkepp az elso 4 byte lesz kiirva
   if (count > BUFF_SIZE) {
     c = BUFF_SIZE;
   }
@@ -175,7 +191,7 @@ static ssize_t reg_write(struct file *filep, const char *buf, size_t count, loff
 
   copy_from_user(input_buffer, buf, c);
   value = *(u32*)buf;
-  //printk(KERN_INFO "write: try to write into reg %x: %x\n", *(unsigned int*)registers_addr[minor], value);
+  printk(KERN_INFO "write: try to write into reg %x: %x\n", *(unsigned int*)registers_addr[minor], value);
 
   iowrite32(value, registers_addr[minor]);
 
@@ -199,11 +215,8 @@ static int myregister_remove(struct platform_device *pdev)
   //class_unregister(regs_class);
   printk(KERN_INFO "\nclass destroy, ");
   class_destroy(regs_class);
-  /* Freeing the major number */
   printk(KERN_INFO "unregister chrdev, ");
-  unregister_chrdev(registers_major, "my_FPGA_registers_device");
-
-  /* Freeing buffer memory */
+  unregister_chrdev(registers_major, DEVICE_NAME);
   printk(KERN_INFO "free buffer, ");
   if (input_buffer) {
     kfree(input_buffer);
@@ -248,8 +261,8 @@ static int myregister_probe(struct platform_device *pdev)
   printk(KERN_INFO "Probe start\n");
 
   // Regisztraljuk az eszkozvezerlot
-  // dinamukis majorszamot kerunk
-  result = register_chrdev(0, "my_FPGA_registers_device", &reg_fops);
+  // dinamikus majorszamot kerunk
+  result = register_chrdev(0, DEVICE_NAME, &reg_fops);
   if (result < 0) {
     printk(KERN_ERR "cannot register chrdev: %d\n", result);
     goto fail_register_chrdev;
@@ -266,15 +279,13 @@ static int myregister_probe(struct platform_device *pdev)
   }
   memset(input_buffer, 0, BUFF_SIZE);
 
-  /* Az udev számára jelzés, hogy hozza létre az eszközállományt. */
+  // Az udev számára jelzés, hogy hozza létre az eszközállományt.
   regs_class = class_create(THIS_MODULE, CLASS_NAME);
   if(!regs_class) {
     printk(KERN_ERR "cannot create class\n");
     goto fail_class_create;
   }
 
-  // TODO class_register kell? es a hibaaga
-  
   // Workqueue létrehozás
   workQ = create_workqueue("FPGA_registers_workqueue");
   if(!workQ) {
@@ -284,17 +295,18 @@ static int myregister_probe(struct platform_device *pdev)
 
   for (index = 0; index < 3 ; index++) {
 
-    // TODO: itt kell valamire a pointer?
+    // Device-ok letrehozasa a megfelelo major szamokkal es fajlnevekkel
     err = device_create(regs_class, NULL, MKDEV(registers_major, index), NULL, file_names[index]);
     if(!err){
       printk(KERN_ERR "cannot create device index %d\n",index);
       goto fail_device_create;
     }
-    // lekerdezzuk a periferiahoz tartozo informaciokat
-    // masodik parameter az ioport.h-ban talalhato
+
+    // Lekerdezzuk a periferiahoz tartozo informaciokat
+    // Masodik parameter az ioport.h-ban talalhato
     resource_mem[index] = platform_get_resource(pdev, IORESOURCE_MEM, index);
 
-    // kiszamoljuk a mereteket
+    // Kiszamoljuk a mereteket
     printk(KERN_INFO "Addresses: start: %x end: %x\n",resource_mem[index]->start, resource_mem[index]->end);
     remap_size[index] = resource_mem[index]->end - resource_mem[index]->start + 1;
 
@@ -303,6 +315,7 @@ static int myregister_probe(struct platform_device *pdev)
       goto fail_request_mem;
     }
 
+    // Fizikai cimeket lekepezzuk virtualis cimekre
     registers_addr[index] = ioremap(resource_mem[index]->start, remap_size[index]);
     printk(KERN_INFO "Remap address: %x\n",(unsigned int)registers_addr[index]);
 
@@ -311,16 +324,18 @@ static int myregister_probe(struct platform_device *pdev)
       goto fail_map;
     }
 
+    // Lekerjuk a priferiakhoz tartozo megszakitasok szamat
     IRQ[index] = platform_get_irq(pdev,index);
     printk(KERN_INFO "IRQ%d: %x\n", index, IRQ[index]);
 
-    INIT_WORK(&task[index], work_fn);
-
+    // Beregisztraljuk a megszakitasvonalhoz a kezelofuggvenyt
     result = request_irq(IRQ[index], myregister_irq_handler, 0, irq_names[index], pdev);
     if (result < 0) {
       printk(KERN_ERR "cannot request IRQ %d: %d\n", index, result);
       goto fail_irq;
     }
+
+    INIT_WORK(&task[index], work_fn);
   }
 
   printk(KERN_INFO "Inserting myreg module succes\n");
@@ -331,38 +346,38 @@ static int myregister_probe(struct platform_device *pdev)
     free_irq(IRQ[index2],pdev);
   }
   index = 3;
-  
+
   fail_map:
   for(index2 = 0; index2 < index; index2++){
-  iounmap(registers_addr[index2]);
+    iounmap(registers_addr[index2]);
   }
   index = 3;
-  
+
   fail_request_mem:
   for(index2 = 0; index2 < index; index2++){
-  release_mem_region(resource_mem[index2]->start, remap_size[index2]);
+    release_mem_region(resource_mem[index2]->start, remap_size[index2]);
   }
   index = 3;
-  
+
   fail_device_create:
   for(index2 = 0; index2 < index; index2++){
-  device_destroy(regs_class, MKDEV(registers_major, index2));
+    device_destroy(regs_class, MKDEV(registers_major, index2));
   }
   index = 3;
-  
+
   fail_create_workqueue:
   class_destroy(regs_class);
   fail_class_create:
   kfree(input_buffer);
   fail_mem:
-  unregister_chrdev(registers_major, "my_FPGA_registers_device");
+  unregister_chrdev(registers_major, DEVICE_NAME);
   fail_register_chrdev:
   return result;
 
 }
 
 static const struct of_device_id myregister_match[] = {
-        { .compatible = "my_FPGA_registers" },
+        { .compatible = COMPATIBLE_STRING },
         {},
 };
 MODULE_DEVICE_TABLE(of, myregister_match);
@@ -371,7 +386,7 @@ static struct platform_driver myregister_driver = {
         .probe = myregister_probe,
         .remove = myregister_remove,
         .driver = {
-                .name = "FPGA_registers",
+                .name = PLATFORM_DRIVER_NAME,
                 .owner = THIS_MODULE,
                 .of_match_table = myregister_match
         },

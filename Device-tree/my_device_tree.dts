@@ -89,7 +89,7 @@
 		compatible = "xlnx,ps7-axi-interconnect-1.00.a", "simple-bus";
 		ranges ;
 		my_FPGA_registers_0: FPGA_registers@75c00000 {
-			compatible = "my_FPGA_registers";
+			compatible = "Microphones";
 			reg = < 0x75c00000 0x10000 >,< 0x75c10000 0x10000 >,< 0x75c20000 0x10000 >;
 			// int: not SPI, no 91 (91-32=59), Leave it as it was (0)
 			// we have 3 interrups lines
