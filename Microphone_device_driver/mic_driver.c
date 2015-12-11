@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  mic_driver.c
  *
  *  Mikrofon periferia meghajto
@@ -324,6 +324,9 @@ static int myregister_probe(struct platform_device *pdev)
       goto fail_map;
     }
 
+    // A megszakitas regisztralasa elott mar inicializalnunk kell a work-ot
+    INIT_WORK(&task[index], work_fn);
+
     // Lekerjuk a priferiakhoz tartozo megszakitasok szamat
     IRQ[index] = platform_get_irq(pdev,index);
     printk(KERN_INFO "IRQ%d: %x\n", index, IRQ[index]);
@@ -335,7 +338,6 @@ static int myregister_probe(struct platform_device *pdev)
       goto fail_irq;
     }
 
-    INIT_WORK(&task[index], work_fn);
   }
 
   printk(KERN_INFO "Inserting myreg module succes\n");
