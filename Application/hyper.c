@@ -1,13 +1,12 @@
 #include "hyper.h"
 
-int calc_triangle_middle(sensor_point s_1, \
+void calc_triangle_middle(sensor_point s_1, \
                          sensor_point s_2, \
                          sensor_point s_3, \
                          point* res) {
-    // TODO ha nincs neki
+
     res->x = (s_1.p.x + s_2.p.x + s_3.p.x)/3;
     res->y = (s_1.p.y + s_2.p.y + s_3.p.y)/3;
-    return 1;
 }
 
 int calc_direction(point* inters, \
@@ -25,13 +24,18 @@ int calc_direction(point* inters, \
     }
 
     vector_size = sqrt(pow(x_sum,2)+pow(y_sum,2));
-    res->x = (x_sum / vector_size);// + middle.x;
-    res->y = (y_sum / vector_size);// + middle.y;
+    if(!vector_size)
+      return -1;
+
+    // Normalas
+    res->x = (x_sum / vector_size);
+    res->y = (y_sum / vector_size);
 
     return 0;
 }
 
-
+#if 0
+// Az erosebb ellenorzes, a szenzorpontokkon belul elhelyezkedo forrasra
 
 /*
  * Koszinusz tetellel ki kell szamolnunk a haromszog egy pontjahoz tartozo szoget,
@@ -52,9 +56,6 @@ double high_of_triangle(double a, double b, double c) {
     gamma = acos(cosgamma);
     return b*sin(gamma);
 }
-
-#if 0
-// Az erosebb ellenorzes, a szenzorpontokkon belul elhelyezkedo forrasra
 
 int is_timestamps_correct(sensor_point s_1, \
                           sensor_point s_2, \

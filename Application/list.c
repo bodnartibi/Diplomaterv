@@ -1,20 +1,19 @@
 #include "list.h"
 
-void list_add_time(int which, unsigned int time){
+void list_add_time(int which, unsigned int time) {
 
   pthread_mutex_lock(&mutex[which]);
   time_elem* new;
 
-  //printf("Add_time\n");
   new = (time_elem*)malloc(sizeof(time_elem));
   new->next= NULL;
   new->time = time;
-  if(!time_list_heads[which]){
+  if(!time_list_heads[which]) {
     new->prev = NULL;
     time_list_heads[which] = new;
     time_list_tails[which] = time_list_heads[which];
   }
-  else{
+  else {
     time_list_tails[which]->next = new;
     new->prev = time_list_tails[which];
   }
@@ -22,14 +21,13 @@ void list_add_time(int which, unsigned int time){
   pthread_mutex_unlock(&mutex[which]);
 }
 
-unsigned int list_get_time(int which, int* valid){
+unsigned int list_get_time(int which, int* valid) {
 
   time_elem* act;
   unsigned int ret;
 
-  //printf("Get_time\n");
   pthread_mutex_lock(&mutex[which]);
-  if(!time_list_heads[which]){
+  if(!time_list_heads[which]) {
     *valid = FALSE;
     return 0;
   }
@@ -44,10 +42,9 @@ unsigned int list_get_time(int which, int* valid){
   return ret;
 }
 
-int list_is_valid(int which){
+int list_is_valid(int which) {
 
   int ret;
-  //printf("Is_valid\n");
   pthread_mutex_lock(&mutex[which]);
   if (time_list_heads[which])
     ret = TRUE;
@@ -57,10 +54,10 @@ int list_is_valid(int which){
   return ret;
 }
 
-void list_init(){
+void list_init() {
 
   int i;
-  for(i = 0; i < 3; i++){
+  for(i = 0; i < LIST_NUM; i++){
     time_list_heads[i] = 0;
     time_list_tails[i] = 0;
   }
@@ -71,8 +68,7 @@ void clear_lists(){
   int which;
   time_elem *act, *next;
 
-  for (which = 0; which < 3; which++) {
-    //printf("Clear lists %d\n", which);
+  for (which = 0; which < LIST_NUM; which++) {
      pthread_mutex_lock(&mutex[which]);
     act = time_list_heads[which];
     while(act){

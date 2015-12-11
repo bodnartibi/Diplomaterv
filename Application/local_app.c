@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
   pthread_cond_init(&cond_common, NULL);
 
   if(pthread_create(&worker_thread, NULL, worker_fn, NULL)){
-    fprintf(stderr,"Hiba a szal letrehozasaban.\n");
+    fprintf(stderr,"Cannot create thread.\n");
     exit(EXIT_FAILURE);
   }
 
@@ -104,8 +104,10 @@ int main(int argc, char* argv[]){
         memcpy((void*)&times[index], (void*)buf, sizeof(times[index]));
         printf("Read value mic %d reg: hex %x dec %u\n",index + 1, times[index], times[index]);
 
+        // Az uj adatot a listahoz adjuk
         list_add_time(index, times[index]);
 
+        // Jelzunk a masik szalnak, hogy van uj adat
         pthread_mutex_lock(&mutex_common);
         pthread_cond_signal (&cond_common);
         pthread_mutex_unlock(&mutex_common);
