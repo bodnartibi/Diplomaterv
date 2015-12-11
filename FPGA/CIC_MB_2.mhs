@@ -1,0 +1,253 @@
+
+# ##############################################################################
+# Created by Base System Builder Wizard for Xilinx EDK 14.7 Build EDK_P.20131013
+# Fri Oct 23 21:48:27 2015
+# Target Board:  Custom
+# Family:    spartan6
+# Device:    xc6slx9
+# Package:   tqg144
+# Speed Grade:  -3
+# ##############################################################################
+ PARAMETER VERSION = 2.1.0
+
+
+ PORT RESET = RESET, DIR = I, SIGIS = RST, RST_POLARITY = 0
+ PORT clock_generator_0_CLKIN_pin = net_clock_generator_0_CLKIN_pin, DIR = I, SIGIS = CLK
+ PORT logsys_axi_sdram_ctrl_0_mem_addr_pin = logsys_axi_sdram_ctrl_0_mem_addr, DIR = O, VEC = [17:0]
+ PORT logsys_axi_sdram_ctrl_0_mem_data_pin = logsys_axi_sdram_ctrl_0_mem_data, DIR = IO, VEC = [15:0]
+ PORT logsys_axi_sdram_ctrl_0_mem_wen_pin = logsys_axi_sdram_ctrl_0_mem_wen, DIR = O
+ PORT logsys_axi_sdram_ctrl_0_mem_lbn_pin = logsys_axi_sdram_ctrl_0_mem_lbn, DIR = O
+ PORT logsys_axi_sdram_ctrl_0_mem_ubn_pin = logsys_axi_sdram_ctrl_0_mem_ubn, DIR = O
+ PORT logsys_axi_sdram_ctrl_0_sram_csn_pin = logsys_axi_sdram_ctrl_0_sram_csn, DIR = O
+ PORT logsys_axi_sdram_ctrl_0_sram_oen_pin = logsys_axi_sdram_ctrl_0_sram_oen, DIR = O
+ PORT logsys_axi_sdram_ctrl_0_sdram_clk_pin = logsys_axi_sdram_ctrl_0_sdram_clk, DIR = O
+ PORT logsys_axi_sdram_ctrl_0_sdram_cke_pin = logsys_axi_sdram_ctrl_0_sdram_cke, DIR = O
+ PORT logsys_axi_sdram_ctrl_0_sdram_csn_pin = logsys_axi_sdram_ctrl_0_sdram_csn, DIR = O
+ PORT axi_uartlite_0_RX_pin = axi_uartlite_0_RX, DIR = I
+ PORT axi_uartlite_0_TX_pin = axi_uartlite_0_TX, DIR = O
+ PORT cic_filter_per_0_channel_pin = cic_filter_per_0_channel, DIR = O
+ PORT cic_filter_per_0_clk_out_pin = cic_filter_per_0_clk_out, DIR = O
+ PORT cic_filter_per_0_data_in_pin = net_cic_filter_per_0_data_in_pin, DIR = I
+ PORT cic_filter_per_1_channel_pin = cic_filter_per_1_channel, DIR = O
+ PORT cic_filter_per_1_clk_out_pin = cic_filter_per_1_clk_out, DIR = O
+ PORT cic_filter_per_1_data_in_pin = net_cic_filter_per_1_data_in_pin, DIR = I
+ PORT cic_filter_per_2_channel_pin = cic_filter_per_2_channel, DIR = O
+ PORT cic_filter_per_2_clk_out_pin = cic_filter_per_2_clk_out, DIR = O
+ PORT cic_filter_per_2_data_in_pin = net_cic_filter_per_2_data_in_pin, DIR = I
+
+
+BEGIN proc_sys_reset
+ PARAMETER INSTANCE = proc_sys_reset_0
+ PARAMETER HW_VER = 3.00.a
+ PARAMETER C_EXT_RESET_HIGH = 0
+ PORT MB_Debug_Sys_Rst = proc_sys_reset_0_MB_Debug_Sys_Rst
+ PORT Dcm_locked = proc_sys_reset_0_Dcm_locked
+ PORT MB_Reset = proc_sys_reset_0_MB_Reset
+ PORT Slowest_sync_clk = clk_50_0000MHz
+ PORT Interconnect_aresetn = proc_sys_reset_0_Interconnect_aresetn
+ PORT Ext_Reset_In = RESET
+ PORT BUS_STRUCT_RESET = proc_sys_reset_0_BUS_STRUCT_RESET
+END
+
+BEGIN lmb_v10
+ PARAMETER INSTANCE = microblaze_0_ilmb
+ PARAMETER HW_VER = 2.00.b
+ PORT SYS_RST = proc_sys_reset_0_BUS_STRUCT_RESET
+ PORT LMB_CLK = clk_50_0000MHz
+END
+
+BEGIN lmb_bram_if_cntlr
+ PARAMETER INSTANCE = microblaze_0_i_bram_ctrl
+ PARAMETER HW_VER = 3.10.c
+ PARAMETER C_BASEADDR = 0x00000000
+ PARAMETER C_HIGHADDR = 0x00003fff
+ BUS_INTERFACE SLMB = microblaze_0_ilmb
+ BUS_INTERFACE BRAM_PORT = microblaze_0_i_bram_ctrl_2_microblaze_0_bram_block
+END
+
+BEGIN lmb_v10
+ PARAMETER INSTANCE = microblaze_0_dlmb
+ PARAMETER HW_VER = 2.00.b
+ PORT SYS_RST = proc_sys_reset_0_BUS_STRUCT_RESET
+ PORT LMB_CLK = clk_50_0000MHz
+END
+
+BEGIN lmb_bram_if_cntlr
+ PARAMETER INSTANCE = microblaze_0_d_bram_ctrl
+ PARAMETER HW_VER = 3.10.c
+ PARAMETER C_BASEADDR = 0x00000000
+ PARAMETER C_HIGHADDR = 0x00003fff
+ BUS_INTERFACE SLMB = microblaze_0_dlmb
+ BUS_INTERFACE BRAM_PORT = microblaze_0_d_bram_ctrl_2_microblaze_0_bram_block
+END
+
+BEGIN bram_block
+ PARAMETER INSTANCE = microblaze_0_bram_block
+ PARAMETER HW_VER = 1.00.a
+ BUS_INTERFACE PORTA = microblaze_0_i_bram_ctrl_2_microblaze_0_bram_block
+ BUS_INTERFACE PORTB = microblaze_0_d_bram_ctrl_2_microblaze_0_bram_block
+END
+
+BEGIN microblaze
+ PARAMETER INSTANCE = microblaze_0
+ PARAMETER HW_VER = 8.50.c
+ PARAMETER C_INTERCONNECT = 2
+ PARAMETER C_USE_BARREL = 1
+ PARAMETER C_USE_FPU = 0
+ PARAMETER C_DEBUG_ENABLED = 1
+ PARAMETER C_ICACHE_BASEADDR = 0xa0000000
+ PARAMETER C_ICACHE_HIGHADDR = 0xa1ffffff
+ PARAMETER C_USE_ICACHE = 1
+ PARAMETER C_CACHE_BYTE_SIZE = 8192
+ PARAMETER C_ICACHE_ALWAYS_USED = 1
+ PARAMETER C_DCACHE_BASEADDR = 0xa0000000
+ PARAMETER C_DCACHE_HIGHADDR = 0xa1ffffff
+ PARAMETER C_USE_DCACHE = 1
+ PARAMETER C_DCACHE_BYTE_SIZE = 8192
+ PARAMETER C_DCACHE_ALWAYS_USED = 1
+ BUS_INTERFACE ILMB = microblaze_0_ilmb
+ BUS_INTERFACE DLMB = microblaze_0_dlmb
+ BUS_INTERFACE M_AXI_DP = axi4lite_0
+ BUS_INTERFACE M_AXI_DC = axi4_0
+ BUS_INTERFACE M_AXI_IC = axi4_0
+ BUS_INTERFACE DEBUG = microblaze_0_debug
+ PORT MB_RESET = proc_sys_reset_0_MB_Reset
+ PORT CLK = clk_50_0000MHz
+END
+
+BEGIN mdm
+ PARAMETER INSTANCE = debug_module
+ PARAMETER HW_VER = 2.10.a
+ PARAMETER C_INTERCONNECT = 2
+ PARAMETER C_USE_UART = 1
+ PARAMETER C_BASEADDR = 0x41400000
+ PARAMETER C_HIGHADDR = 0x4140ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ BUS_INTERFACE MBDEBUG_0 = microblaze_0_debug
+ PORT Debug_SYS_Rst = proc_sys_reset_0_MB_Debug_Sys_Rst
+ PORT S_AXI_ACLK = clk_50_0000MHz
+END
+
+BEGIN clock_generator
+ PARAMETER INSTANCE = clock_generator_0
+ PARAMETER HW_VER = 4.03.a
+ PARAMETER C_EXT_RESET_HIGH = 0
+ PARAMETER C_CLKIN_FREQ = 50000000
+ PARAMETER C_CLKOUT0_FREQ = 50000000
+ PARAMETER C_CLKOUT0_GROUP = NONE
+ PARAMETER C_CLKOUT1_FREQ = 100000000
+ PORT LOCKED = proc_sys_reset_0_Dcm_locked
+ PORT CLKOUT0 = clk_50_0000MHz
+ PORT RST = RESET
+ PORT CLKIN = net_clock_generator_0_CLKIN_pin
+ PORT CLKOUT1 = clock_generator_0_CLKOUT1
+END
+
+BEGIN bram_block
+ PARAMETER INSTANCE = axi_bram_ctrl_0_bram_block
+ PARAMETER HW_VER = 1.00.a
+ BUS_INTERFACE PORTA = axi_bram_ctrl_0_bram_porta_2_axi_bram_ctrl_0_bram_block_porta
+ BUS_INTERFACE PORTB = axi_bram_ctrl_0_bram_portb_2_axi_bram_ctrl_0_bram_block_portb
+END
+
+BEGIN axi_bram_ctrl
+ PARAMETER INSTANCE = axi_bram_ctrl_0
+ PARAMETER HW_VER = 1.03.a
+ PARAMETER C_INTERCONNECT_S_AXI_MASTERS = microblaze_0.M_AXI_DC & microblaze_0.M_AXI_IC
+ PARAMETER C_INTERCONNECT_S_AXI_AW_REGISTER = 8
+ PARAMETER C_INTERCONNECT_S_AXI_AR_REGISTER = 8
+ PARAMETER C_INTERCONNECT_S_AXI_W_REGISTER = 8
+ PARAMETER C_INTERCONNECT_S_AXI_R_REGISTER = 8
+ PARAMETER C_INTERCONNECT_S_AXI_B_REGISTER = 8
+ PARAMETER C_S_AXI_BASEADDR = 0xa0a28000
+ PARAMETER C_S_AXI_HIGHADDR = 0xa0a2bfff
+ BUS_INTERFACE BRAM_PORTA = axi_bram_ctrl_0_bram_porta_2_axi_bram_ctrl_0_bram_block_porta
+ BUS_INTERFACE BRAM_PORTB = axi_bram_ctrl_0_bram_portb_2_axi_bram_ctrl_0_bram_block_portb
+ BUS_INTERFACE S_AXI = axi4_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+END
+
+BEGIN axi_interconnect
+ PARAMETER INSTANCE = axi4lite_0
+ PARAMETER HW_VER = 1.06.a
+ PARAMETER C_INTERCONNECT_CONNECTIVITY_MODE = 0
+ PORT INTERCONNECT_ARESETN = proc_sys_reset_0_Interconnect_aresetn
+ PORT INTERCONNECT_ACLK = clk_50_0000MHz
+END
+
+BEGIN axi_interconnect
+ PARAMETER INSTANCE = axi4_0
+ PARAMETER HW_VER = 1.06.a
+ PORT interconnect_aclk = clk_50_0000MHz
+ PORT INTERCONNECT_ARESETN = proc_sys_reset_0_Interconnect_aresetn
+END
+
+BEGIN logsys_axi_sdram_ctrl
+ PARAMETER INSTANCE = logsys_axi_sdram_ctrl_0
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_INTERCONNECT_S_AXI_MASTERS = microblaze_0.M_AXI_DC & microblaze_0.M_AXI_IC
+ PARAMETER C_S_AXI_BASEADDR = 0xa1000000
+ PARAMETER C_S_AXI_HIGHADDR = 0xa1ffffff
+ BUS_INTERFACE S_AXI = axi4_0
+ PORT s_axi_aclk = clk_50_0000MHz
+ PORT mem_addr = logsys_axi_sdram_ctrl_0_mem_addr
+ PORT mem_data = logsys_axi_sdram_ctrl_0_mem_data
+ PORT mem_wen = logsys_axi_sdram_ctrl_0_mem_wen
+ PORT mem_lbn = logsys_axi_sdram_ctrl_0_mem_lbn
+ PORT mem_ubn = logsys_axi_sdram_ctrl_0_mem_ubn
+ PORT sram_csn = logsys_axi_sdram_ctrl_0_sram_csn
+ PORT sram_oen = logsys_axi_sdram_ctrl_0_sram_oen
+ PORT sdram_clk = logsys_axi_sdram_ctrl_0_sdram_clk
+ PORT sdram_cke = logsys_axi_sdram_ctrl_0_sdram_cke
+ PORT sdram_csn = logsys_axi_sdram_ctrl_0_sdram_csn
+ PORT s_axi_aclk2x = clock_generator_0_CLKOUT1
+END
+
+BEGIN axi_uartlite
+ PARAMETER INSTANCE = axi_uartlite_0
+ PARAMETER HW_VER = 1.02.a
+ PARAMETER C_BAUDRATE = 115200
+ PARAMETER C_BASEADDR = 0x40600000
+ PARAMETER C_HIGHADDR = 0x4060ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT RX = axi_uartlite_0_RX
+ PORT TX = axi_uartlite_0_TX
+END
+
+BEGIN cic_filter_per
+ PARAMETER INSTANCE = cic_filter_per_0
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_BASEADDR = 0x73040000
+ PARAMETER C_HIGHADDR = 0x7304ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT channel = cic_filter_per_0_channel
+ PORT clk_out = cic_filter_per_0_clk_out
+ PORT data_in = net_cic_filter_per_0_data_in_pin
+END
+
+BEGIN cic_filter_per
+ PARAMETER INSTANCE = cic_filter_per_1
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_BASEADDR = 0x73020000
+ PARAMETER C_HIGHADDR = 0x7302ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT channel = cic_filter_per_1_channel
+ PORT clk_out = cic_filter_per_1_clk_out
+ PORT data_in = net_cic_filter_per_1_data_in_pin
+END
+
+BEGIN cic_filter_per
+ PARAMETER INSTANCE = cic_filter_per_2
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_BASEADDR = 0x73000000
+ PARAMETER C_HIGHADDR = 0x7300ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT channel = cic_filter_per_2_channel
+ PORT clk_out = cic_filter_per_2_clk_out
+ PORT data_in = net_cic_filter_per_2_data_in_pin
+END
+
