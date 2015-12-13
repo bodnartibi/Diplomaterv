@@ -1,47 +1,50 @@
-D = 25;
-%size_input = 10000;
-FFT_FOK = 100000; %44200;
+function [fft_x, PDM_spektrum] = CIC_szures_prezi(input_path, D, FFT_FOK)
+% input_path: a PDM jelet tartalmaza mat fajl eleresi utja
+% D: a CIC szuro fokszama
+% FFT_FOK: az FFT fokszama
 
-%time=[0:1:size_input-1];
-%signal = (square(time/500)); %+ 0.5 * rand(1, length(time));
-%signal = sawtooth(time/250,1);
+% input mat fajl beolvasasa
+s = load(input_path);
+% PDM idotartomany beli jel
+PDM_signal = s.ans;
+PDM_signal = transpose(PDM_signal(2,:));
+t = [0:1:size(PDM_signal(:,1))-1];
+% spektrum kiszamitasa
+PDM_spektrum = abs(fft(PDM_signal,FFT_FOK));
+fft_x = [0:1:FFT_FOK-1];
 
-s= load('PDM_sin.mat');
-signal = s.ans;
-signal = transpose(signal(2,:));
-spek_signal=abs(fft(signal,FFT_FOK));
-spek_y=[0:1:FFT_FOK-1];
-out_t = [0:1:size(signal(:,1))-1];
-
-% CIC filter
+% CIC szuro atviteli fuggvenyenek osszeallitasa
 cic_num = zeros(1,D+1);
 cic_num(1) = 1;
 cic_num(D+1) = -1;
 cic_den = [1 -1];
 
-out = filter(cic_num,cic_den,signal);
-spek_out = abs(fft(out,FFT_FOK));
+% szures elvegzese
+out = filter(cic_num,cic_den,PDM_signal);
+% szurt jel spektruma
+out_spektrum = abs(fft(out,FFT_FOK));
 
-imp_x = zeros(size(signal));
-imp_x(1) = 1;
-
-imp_out = filter(cic_num,cic_den,imp_x);
-frek_resp = abs(fft(imp_out,FFT_FOK));
+% impulzus bemeno jel eloallitasa
+imp = zeros(size(PDM_signal));
+imp(1) = 1;
+% impulzusvalasz eloallitasa
+imp_valasz = filter(cic_num,cic_den,imp);
+% szuro impulzusvalaszanak atviteli fuggvenye
+imp_valasz_spektrum = abs(fft(imp_valasz,FFT_FOK));
 
 figure(1)
-%osztas a latvany miatt
-plot(out_t,out,'r');
-hold on
-%plot(out_t,signal,'b');
-hold off
-%%
+plot(t, out, 'r');
+legend('Szurt PDM jel hullamformaja');
+title('Szurt PDM jel idotartomanyban');
+
 figure(2)
-%szorzo csak a latvany miatt
-plot(spek_y,spek_signal*15,'b');
+plot(fft_x, PDM_spektrum,'b');
 hold on
-plot(spek_y,spek_out,'r');
-plot(spek_y,frek_resp*15,'g');
+plot(fft_x, out_spektrum,'r');
+plot(fft_x, imp_valasz_spektrum,'g');
 hold off
+legend('PDM jel spektruma','Szurt PDM jel spektruma','Impulzusvalasz spektruma');
+title('Spektrumok');
 
 
 
