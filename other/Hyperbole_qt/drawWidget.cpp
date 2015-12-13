@@ -21,25 +21,23 @@ void DrawWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
 
-    // tengelyek
-
     QPen myPen3(Qt::black, 1, Qt::SolidLine);
     painter.setPen(myPen3);
 
     for(int i=0; i < 2000 ; i++)
     {
-        // x tengely
+        // y tengely
         painter.drawPoint(screen_size.x(), i);
 
-        // y tengely
-        painter.drawPoint(i, screen_size.y()+200);
+        // x tengely
+        painter.drawPoint(i, screen_size.y()+Y_AXIS_OFFSET);
     }
 
     QPen myPen(Qt::blue, 2, Qt::SolidLine);
     painter.setPen(myPen);
 
     foreach (QPoint p, points) {
-        painter.drawPoint(p.x() + screen_size.x(), -p.y() + screen_size.y()+200);
+        painter.drawPoint(p.x() + screen_size.x(), -p.y() + screen_size.y()+Y_AXIS_OFFSET);
     }
 
     QPen myPen2(Qt::red, 5, Qt::SolidLine);
@@ -47,7 +45,7 @@ void DrawWidget::paintEvent(QPaintEvent *event)
     painter.setPen(myPen2);
 
     foreach (QPoint p, sensor_points) {
-        painter.drawPoint(p.x()/PRINT_RATIO + screen_size.x(), -p.y()/PRINT_RATIO + screen_size.y()+200);
+        painter.drawPoint(p.x()/PRINT_RATIO + screen_size.x(), -p.y()/PRINT_RATIO + screen_size.y()+Y_AXIS_OFFSET);
     }
 
     QPen myPen4(Qt::green, 5, Qt::SolidLine);
@@ -55,23 +53,20 @@ void DrawWidget::paintEvent(QPaintEvent *event)
     painter.setPen(myPen4);
 
     foreach (QPoint p, inter_points) {
-        painter.drawPoint(p.x() + screen_size.x(), -p.y() + screen_size.y()+200);
+        painter.drawPoint(p.x() + screen_size.x(), -p.y() + screen_size.y()+Y_AXIS_OFFSET);
     }
 
     QPen myPen5(Qt::gray, 3, Qt::SolidLine);
 
     painter.setPen(myPen5);
     for(int i =0; i < 500; i++){
-         painter.drawPoint(direction.x*i + screen_size.x() + middle.x, -direction.y*i + screen_size.y()+200 - middle.y);
+         painter.drawPoint(direction.x*i + screen_size.x() + middle.x, -direction.y*i + screen_size.y()+Y_AXIS_OFFSET - middle.y);
     }
 
 }
 
-
 void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, double speed)
 {
-
-
     sensor_point sen_1, sen_2, sen_3;
     point* inter;
 
@@ -108,8 +103,6 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
     points.clear();
 
     calc_triangle_middle(sen_1,sen_2,sen_3,&middle);
-
-    is_timestamps_correct(sen_1,sen_2,sen_3,speed);
 
     calc_hyper(sen_1, sen_2,\
                res_1, size, 0.5,1.005, speed);
@@ -173,8 +166,10 @@ void DrawWidget::start_draw(QList<int> x, QList<int> y, QList<int> t, int size, 
         inter_points.append(*p);
     }
 
-
-
+    /*
+     * Ujrarajzolas kivaltasa,
+     * a megosztott valtozokban tarolt adatok alapjan kirajzolhatjuk az iveket
+     */
     repaint();
     return;
 }

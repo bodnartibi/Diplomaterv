@@ -12,7 +12,6 @@ InputsWidget::InputsWidget(QWidget *drawW): QWidget(drawW)
     grid_layout->addWidget(new QLabel("Y koordinate"),0,2);
     grid_layout->addWidget(new QLabel("Time"),0,3);
 
-
     // elso oszlop
     grid_layout->addWidget(new QLabel("First point:"),1,0);
     grid_layout->addWidget(new QLabel("Second point:"),2,0);
@@ -68,6 +67,7 @@ void InputsWidget::start_calc()
     int size;
     double speed;
 
+    // Bemenetek ervenyessegenek ellenorzese
     x.append(first_x_line->text().toInt(&OK));
     if(!OK)
         goto error;
@@ -105,6 +105,8 @@ void InputsWidget::start_calc()
         goto error;
 
     print_error("");
+
+    // Ha midnen bemenet ervenyes, azok elkuldese a szamolast vegzo objektumnak
     emit send_start_draw(x,y,t,size,speed);
     return;
 
