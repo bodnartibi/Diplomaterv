@@ -243,12 +243,10 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
     for(index = 0; index < res_length; ) {
 
         // a kozelebbi szenzotrol "a" a tavolsag
-        // a tavolabbitol a + dd
         b = a + 2*sound_distance;
 
         // coszinusztetellel a kozelebbinel levo szog
         coslamd = (1/(2*a*distance)) * (pow(a,2.0) + pow(distance,2.0) - pow(b,2.0));
-        //coslamd = (1/(2*a*distance)) * (-pow(a,2.0) - pow(distance,2.0) + pow(b,2.0));
 
         // kozepponttol a tavolsag
         s = sqrt(pow(a,2.0) + pow(distance,2.0)/4.0 - a*distance*coslamd);
@@ -280,8 +278,8 @@ void calc_hyper(sensor_point sensor_1, sensor_point sensor_2, \
         }
         x = s * cosfi;
         y = s * sin(fi);
-        // pont forgatasa
 
+        // pont forgatasa
         rot_1.x = x * cos(angle) - y * sin(angle);
         rot_1.y = x * sin(angle) + y * cos(angle);
 
