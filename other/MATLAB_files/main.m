@@ -14,7 +14,7 @@ D = 10;
 simulink_file_path = 'PDM_sin.mat';
 
 % wav fajl tartalmanak mentese mat fajlba
-[csett] = wav_to_mat(wav_file_path,mat_file_path,10);
+[csett] = wav_to_mat_function(wav_file_path,mat_file_path,10);
 
 % wav fajlban talalhato hang hullamformaja
 csett_t = [1:size(csett)];
@@ -28,7 +28,7 @@ load_system(model)
 sim(model)
 
 % PDM jel szuresenek elvegzese, eredmenyek megjelenitese
-CIC_szures_prezi(simulink_file_path, D, FFT_FOK);
+CIC_szuro_function(simulink_file_path, D, FFT_FOK);
 
 % mat fajl beolvasasa
 s = load(simulink_file_path);
