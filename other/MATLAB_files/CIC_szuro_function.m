@@ -1,4 +1,4 @@
-function [fft_x, PDM_spektrum] = CIC_szures_prezi(input_path, D, FFT_FOK)
+function [] = CIC_szures_prezi(input_path, D, FFT_FOK)
 % input_path: a PDM jelet tartalmaza mat fajl eleresi utja
 % D: a CIC szuro fokszama
 % FFT_FOK: az FFT fokszama
@@ -43,7 +43,7 @@ hold on
 plot(fft_x, out_spektrum,'r');
 plot(fft_x, imp_valasz_spektrum,'g');
 hold off
-legend('PDM jel spektruma','Szurt PDM jel spektruma','Impulzusvalasz spektruma');
+legend('PDM jel spektruma','Szurt PDM jel spektruma','CIC impulzusvalasz spektruma');
 title('Spektrumok');
 
 

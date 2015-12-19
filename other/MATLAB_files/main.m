@@ -10,7 +10,6 @@ model = 'sigmadelta_csett_to_PDM';
 FFT_FOK = 10000;
 % CIC szuro fokszama
 D = 10;
-
 % simulinkes rendszer kimeneti fajlja
 simulink_file_path = 'PDM_sin.mat';
 
@@ -29,14 +28,23 @@ load_system(model)
 sim(model)
 
 % PDM jel szuresenek elvegzese, eredmenyek megjelenitese
-[spek_y, spek_signal] = CIC_szures_prezi(simulink_file_path, D, FFT_FOK);
+CIC_szures_prezi(simulink_file_path, D, FFT_FOK);
+
+% mat fajl beolvasasa
+s = load(simulink_file_path);
+% PDM idotartomany beli jel
+PDM_signal = s.ans;
+PDM_signal = transpose(PDM_signal(2,:));
 
 figure(101)
-%szorzo csak a latvany miatt
-plot(spek_y,spek_signal,'b');
+fft_x = [0:1:FFT_FOK-1];
+% modulalt jel spektruma
+spek_signal = abs(fft(PDM_signal,FFT_FOK));
+plot(fft_x,spek_signal,'b');
 hold on
+% eredeti jel spektruma
 spek_orig=(abs(fft(csett,FFT_FOK)));
-plot(spek_y,spek_orig,'r');
+plot(fft_x,spek_orig,'r');
 hold off
-legend('Szurt PDM jel spektruma','A felvett, eredeti jel spektruma');
-title('A felvett jel, es a szurt PDM jel spektruma');
+legend('A modulalt jel spektruma','A felvett, eredeti jel spektruma');
+title('A felvett jel, es a modulalt jel spektruma');
