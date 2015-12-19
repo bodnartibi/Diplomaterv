@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <time.h>
 #include "hyper.h"
 #include "list.h"
 

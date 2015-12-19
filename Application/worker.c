@@ -2,11 +2,13 @@
 
 void* worker_fn(void* arg){
 
-  point* res_1;
-  point* res_2;
-  point* res_3;
+  point res_1[SIZE];
+  point res_2[SIZE];
+#ifdef THREE_HYP
+  point res_3[SIZE];
+#endif
 
-  point* inter;
+  point inter[SIZE];
   point middle;
   point direction;
 
@@ -17,6 +19,8 @@ void* worker_fn(void* arg){
   int valid;
 
   double cross_threshold;
+
+  clock_t t_h_1, t_h_2, t_i_1, t_i_2;
 
   calc_triangle_middle(sen_1, sen_2, sen_3, &middle);
 
@@ -58,11 +62,7 @@ void* worker_fn(void* arg){
 
     printf("Start to calculate\n");
     printf("Times: %u %u %u\n", times[0], times[1], times[2]);
-    res_1 = (point*)malloc(sizeof(point)*SIZE);
-    res_2 = (point*)malloc(sizeof(point)*SIZE);
-#if THREE_HYP
-    res_3 = (point*)malloc(sizeof(point)*SIZE);
-#endif
+    t_h_1 = clock();
 
     calc_hyper(sen_1, sen_2, \
                res_1, SIZE, STEP, GAIN, sound_speed);
@@ -70,13 +70,14 @@ void* worker_fn(void* arg){
     calc_hyper(sen_2, sen_3, \
                res_2, SIZE, STEP, GAIN, sound_speed);
 
-#if THREE_HYP
+#ifdef THREE_HYP
     calc_hyper(sen_3, sen_1, \
                res_3, SIZE, STEP, GAIN, sound_speed);
 #endif
-
-    inter = (point*)malloc(sizeof(point)*SIZE);
-    cross_threshold = 0.01;
+    t_h_2 = clock();
+    printf("Hyperboles has been calculated, time: %f sec\n", (float)(t_h_2 - t_h_1)/CLOCKS_PER_SEC);
+    t_i_1 = clock();
+    cross_threshold = 1.01;
     while(1) {
       calc_intersection(res_1, \
                         res_2, \
@@ -88,7 +89,7 @@ void* worker_fn(void* arg){
       if(num_inter > 0)
         break;
 
-#if THREE_HYP
+#ifdef THREE_HYP
       calc_intersection(res_2, \
                         res_3, \
                         SIZE, cross_threshold, \
@@ -111,6 +112,8 @@ void* worker_fn(void* arg){
       if(num_inter > 0)
         break;
 #endif
+      t_i_2 = clock();
+      printf("Duration of intersection calulation: %f sec\n", (float)(t_i_2 - t_i_1)/CLOCKS_PER_SEC);
       // Ha nem talaltunk metszespontot,
       // akkor noveljuk a megengedheto tavolsagot
       cross_threshold = cross_threshold + 1;
@@ -118,7 +121,7 @@ void* worker_fn(void* arg){
 
     printf("Intersections: \n");
     for(index = 0; index < num_inter; index++) {
-      printf(" %d %d \n", (int)((inter + index)->x+0.5), (int)((inter + index)->y+0.5));
+      printf(" %d %d \n", (int)(inter[index].x+0.5), (int)(inter[index].y+0.5));
     }
 
     calc_direction(inter, num_inter, middle, &direction);
@@ -128,10 +131,4 @@ void* worker_fn(void* arg){
     t_ready[1] = 0;
     t_ready[2] = 0;
   }
-
-  // Ezt a pontot nem erjuk el a vegtelen ciklus miatt
-  free(res_1);
-  free(res_2);
-  free(res_3);
-  free(inter);
 }
