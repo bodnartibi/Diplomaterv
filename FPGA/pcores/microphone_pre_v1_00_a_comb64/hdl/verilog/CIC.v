@@ -1,18 +1,18 @@
 `timescale 1ns / 1ps
 
 module CIC(
-	input clk,                  // clock in 50 MHz
-	input rst,                  // reset
+	input clk,                  // bejovo orajel (50 MHz)
+	input rst,                  // reszet
 	input [31:0] clk_div,       // x eseten (x+1)*2 az osztas
 	
-	input [5:0] comb_num,       // comb's rate
-	input [7:0] dec_num,       // decimator's rate
-	output reg [31:0] data_out, // CIC filter output
-	output reg data_out_valid,  // output valid
+	input [5:0] comb_num,       // atlagolas merteke
+	input [7:0] dec_num,        // decimalas merteke
+	output reg [31:0] data_out, // kimenet
+	output reg data_out_valid,  // kimenet ervenyessege
 	
 	output channel,             // 
-	output reg clk_out,         // clock to microphone 1 MHz
-	input data_in               // data from the microphone (based on clok_out)
+	output reg clk_out,         // mikrofon orajele
+	input data_in               // mikrofontol jovo adat
    );
 
 reg [31:0] integ;
@@ -107,7 +107,7 @@ begin
 					begin
 						comb[i] <= comb[i-1];
 					end
-					//selecting based on comb's rate
+					//atlagolas merteketol fuggoen valasztunk 
 					for(i = 0; i < 64; i = i+1)
 					begin
 						if(comb_num == i)

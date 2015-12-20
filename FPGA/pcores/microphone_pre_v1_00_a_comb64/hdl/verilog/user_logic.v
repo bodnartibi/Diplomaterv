@@ -274,16 +274,16 @@ fifo_generator_v9_3 fifo(
 );
 
 CIC CIC(
-  .clk(Bus2IP_Clk),                  // clock in 50 MHz
-  .rst(!Bus2IP_Resetn),              // reset
-  .clk_div(32'd7),                   // x eseten (x+1)*2 az osztas
-  .comb_num(comb_num),               // comb's rate
-  .dec_num(dec_num),                 // decimator's rate
-  .data_out(cic_data),               // CIC filter output
-  .data_out_valid(cic_data_valid),   // output valid
-  .channel(channel),                 // channel
-  .clk_out(clk_out),                 // clock to microphone 1 MHz
-  .data_in(data_in)                  // data from the microphone (based on clok_out)
+  .clk(Bus2IP_Clk),
+  .rst(!Bus2IP_Resetn),
+  .clk_div(32'd7),
+  .comb_num(comb_num),
+  .dec_num(dec_num),
+  .data_out(cic_data),
+  .data_out_valid(cic_data_valid),
+  .channel(channel),
+  .clk_out(clk_out),
+  .data_in(data_in)
    );
 
 endmodule

@@ -1,30 +1,12 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    14:11:36 10/24/2015 
-// Design Name: 
-// Module Name:    CIC 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
+
 module CIC(
 	input clk,                  // clock in 50 MHz
 	input rst,                  // reset
-	input [4:0] clk_div,       // x eseten (x+1)*2 az osztas
+	input [4:0] clk_div,        // x eseten (x+1)*2 az osztas
 	
-	//input [5:0] comb_num,       // comb's rate
-	input [3:0] dec_num,       // decimator's rate
+	//input [5:0] comb_num,     // comb's rate
+	input [3:0] dec_num,        // decimator's rate
 	output reg [31:0] data_out, // CIC filter output
 	output reg data_out_valid,  // output valid
 	
