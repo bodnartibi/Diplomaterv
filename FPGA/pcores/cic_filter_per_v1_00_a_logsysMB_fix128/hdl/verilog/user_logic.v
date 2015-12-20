@@ -217,17 +217,16 @@ assign IP2Bus_Data = (slv_read_ack == 1'b1) ? slv_ip2bus_data :  0 ;
   assign IP2Bus_Error = 0;
 
 CIC CIC(
-	.clk(Bus2IP_Clk),                  // clock in 50 MHz
-	.rst(!Bus2IP_Resetn),              // reset
-	.clk_div(5'd7),                    // x eseten (x+1)*2 az osztas
-	//.comb_num(6'd63),                // comb's rate
-	// 64-es atlagolas fixen
-	.dec_num(4'd5),                    // decimator's rate
-	.data_out(cic_data),               // CIC filter output
-	.data_out_valid(data_out_valid),   // output valid
-	.channel(channel),                 // 
-	.clk_out(clk_out),                 // clock to microphone 1 MHz
-	.data_in(data_in)                  // data from the microphone (based on clok_out)
+	.clk(Bus2IP_Clk),
+	.rst(!Bus2IP_Resetn),
+	.clk_div(5'd7),
+	//atlagolas fixen
+	.dec_num(4'd5),
+	.data_out(cic_data),
+	.data_out_valid(data_out_valid),
+	.channel(channel),
+	.clk_out(clk_out),
+	.data_in(data_in)
    );
 
 endmodule

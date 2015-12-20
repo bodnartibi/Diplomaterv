@@ -32,7 +32,7 @@ CIC_szuro_function(simulink_file_path, D, FFT_FOK);
 
 % mat fajl beolvasasa
 s = load(simulink_file_path);
-% PDM idotartomany beli jel
+% PDM idotartomanybeli jel
 PDM_signal = s.ans;
 PDM_signal = transpose(PDM_signal(2,:));
 

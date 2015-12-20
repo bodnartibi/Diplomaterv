@@ -160,9 +160,6 @@ static ssize_t reg_read(struct file *filep, char *buf, size_t count, loff_t *f_p
     return 0;
   }
 
-  // minor 1: mic 0
-  // minor 2: mic 1
-  // minor 3: mic 2
   reg_value = reg[minor];
 
   copy_to_user(buf, &reg_value, sizeof(reg_value));

@@ -157,32 +157,6 @@ int main()
 		   act_mem_p[i]++;
 	   }
    }
-/*
-   print("---Printing datas\n\r");
-   print("End: ");
-   putnum(end_mem_p[0]);
-   print(" Begin: ");
-   putnum(MEM_SLOT_0);
-   print(" Diff: ");
-   putnum(end_mem_p[0]- MEM_SLOT_0);
-   print("\n\r");
-
-   print("End: ");
-   putnum(end_mem_p[1]);
-   printf(" Begin: ");
-   putnum(MEM_SLOT_1);
-   print(" Diff: ");
-   putnum(end_mem_p[1]- MEM_SLOT_1);
-   print("\n\r");
-
-   print("End: ");
-   putnum(end_mem_p[2]);
-   print(" Begin: ");
-   putnum(MEM_SLOT_2);
-   print(" Diff: ");
-   putnum(end_mem_p[2]- MEM_SLOT_2);
-   print("\n\r");
-*/
 
    print("Soon...\n\r");
    act_mem_p[0] = MEM_SLOT_0;

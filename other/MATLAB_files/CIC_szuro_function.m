@@ -5,7 +5,7 @@ function [] = CIC_szures_prezi(input_path, D, FFT_FOK)
 
 % input mat fajl beolvasasa
 s = load(input_path);
-% PDM idotartomany beli jel
+% PDM idotartomanybeli jel
 PDM_signal = s.ans;
 PDM_signal = transpose(PDM_signal(2,:));
 t = [0:1:size(PDM_signal(:,1))-1];
